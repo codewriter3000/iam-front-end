@@ -37,14 +37,43 @@ const NewUserModal = ({ open, setOpen }) => {
     setPassword("");
     setFirstName("");
     setLastName("");
+    setEmail("");
+    setIsAdmin(false);
+    setIsEnabled(true);
   }, [open]);
 
   return (
     <Modal
+      preventCloseOnClickOutside={true}
       open={open}
       onRequestClose={() => setOpen(false)}
       onRequestSubmit={(evt) => {
         // asdfsfssdfS5$
+        if (username.length < 3 || username.length > 20) {
+          setUsernameInvalid(true);
+          setUsernameInvalidText("Username must be at least 3 characters long.");
+          return;
+        }
+        if (password.length < 8 || password.length > 20) {
+          setPasswordInvalid(true);
+          setPasswordInvalidText("Password must be at least 8 characters long.");
+          return;
+        }
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
+        if (!passwordRegex.test(password)) {
+          setPasswordInvalid(true);
+          setPasswordInvalidText(
+            "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character."
+          );
+          return;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          setEmailInvalid(true);
+          setEmailInvalidText("Please enter a valid email address.");
+          return;
+        }
+
         setUsernameInvalid(false);
         setPasswordInvalid(false);
         setFirstNameInvalid(false);

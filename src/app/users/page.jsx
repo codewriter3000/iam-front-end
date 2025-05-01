@@ -18,6 +18,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { getUsers, getUserByID } from "@/../lib";
 import { NewUserModal, ConfigureUserModal } from "@/components/modals";
+import { ErrorBoundary } from "@/components/misc";
 
 const UsersPage = () => {
 
@@ -65,36 +66,35 @@ const UsersPage = () => {
   };
 
   useEffect(() => {
-    setSearchResults([...realData]);
+    // if (!realData) {
+    //   setSearchResults([...getUsers()]);
+    // } else {
+      setSearchResults([...realData]);
+    // }
 
     if (searchString.length > 0) {
       setSearchResults(
         realData.filter((result) => {
-          return (
-            result["username"]
+            return (
+            (result["username"] &&
+              result["username"]
               .toLowerCase()
-              .includes(searchString.toLowerCase()) ||
-            result["first_name"]
+              .includes(searchString.toLowerCase())) ||
+            (result["first_name"] &&
+              result["first_name"]
               .toLowerCase()
-              .includes(searchString.toLowerCase()) ||
-            result["last_name"]
+              .includes(searchString.toLowerCase())) ||
+            (result["last_name"] &&
+              result["last_name"]
               .toLowerCase()
-              .includes(searchString.toLowerCase())
-          );
+              .includes(searchString.toLowerCase()))
+            );
         })
       );
     }
 
     setPage(1);
   }, [searchString, realData]);
-
-  const ErrorBoundary = ({ trigger, fallback, children }) => {
-    if (trigger) {
-      return fallback;
-    } else {
-      return children;
-    }
-  };
 
   return (
     <ErrorBoundary
