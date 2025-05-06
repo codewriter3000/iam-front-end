@@ -17,8 +17,9 @@ import {
 } from "@carbon/react";
 import { useCallback, useEffect, useState } from "react";
 import { getUsers, getUserByID } from "@/../lib";
-import { NewUserModal, ConfigureUserModal } from "@/components/modals";
+import { NewUserModal } from "@/components/modals";
 import { ErrorBoundary } from "@/components/misc";
+import { ConfigureUserModalProvider, ConfigureUserModal } from "@/components/modals/ConfigureUserModal/index.js";
 
 const UsersPage = () => {
 
@@ -102,11 +103,13 @@ const UsersPage = () => {
       fallback={<h1>An error has occurred</h1>}
     >
       <NewUserModal open={newOpen} setOpen={setNewOpen} />
-      <ConfigureUserModal
-        open={configureOpen}
-        setOpen={setConfigureOpen}
-        user={user}
-      />
+      <ConfigureUserModalProvider>
+        <ConfigureUserModal
+          open={configureOpen}
+          setOpen={setConfigureOpen}
+          user={user}
+        />
+      </ConfigureUserModalProvider>
       <Grid>
         <Column className="" lg={16} md={8} sm={4}>
           <Section level={1}>

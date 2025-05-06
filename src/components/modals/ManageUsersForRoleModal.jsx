@@ -73,7 +73,7 @@ const ManageUsersForRoleModal = ({ role, open, setOpen }) => {
                 <Search
                     labelText="Search users"
                     id="search-users"
-                    placeHolderText="Search users"
+                    placeholdertext="Search users"
                     onChange={evt => setSearchString(evt.target.value)}
                 />
                 <CheckboxGroup>
