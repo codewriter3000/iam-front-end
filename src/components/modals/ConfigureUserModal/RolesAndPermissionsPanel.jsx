@@ -1,7 +1,7 @@
 import { Stack, FilterableMultiSelect } from "@carbon/react";
-import { useConfigureUserModal } from "./index";
+import { useConfigureUserModal, Permissions } from "./index";
 
-const UserRolesPanel = () => {
+const RolesAndPermissionsPanel = () => {
   const { allRoles, rolesBelongingToUser, setRolesBelongingToUser } =
     useConfigureUserModal();
 
@@ -13,10 +13,10 @@ const UserRolesPanel = () => {
             marginTop: "1rem",
           }}
         >
-          This is where you can configure the roles for a user. You can add or
-          remove roles from a user.
+          This is where you can configure the roles and permissions for a user. You can add or
+          remove roles and permissions as needed.
         </p>
-        <div className="overflow-y-auto h-40">
+        <div>
           {allRoles.length > 0 ? (
             <FilterableMultiSelect
               items={allRoles?.map((role) => ({
@@ -38,11 +38,12 @@ const UserRolesPanel = () => {
               titleText="Roles"
             />
           ) : (
-            <div className="text-center">No roles available</div>
+            <div className="text-center">There are no roles in the system.</div>
           )}
         </div>
+        <Permissions />
       </Stack>
   );
 };
 
-export default UserRolesPanel;
+export default RolesAndPermissionsPanel;

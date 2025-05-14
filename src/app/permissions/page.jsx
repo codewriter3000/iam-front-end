@@ -16,16 +16,15 @@ import {
   Tag,
 } from "@carbon/react";
 import { useCallback, useEffect, useState } from "react";
-import { getRoles } from "@/../lib";
-import { NewRoleModal } from "@/components/modals";
-import { ConfigureRoleModal, ConfigureRoleModalProvider } from "@/components/modals/ConfigureRoleModal/index.js";
+import { getPermissions } from "@/../lib";
+import { NewPermissionModal, ConfigurePermissionModal, ManageUsersForPermissionModal } from "@/components/modals";
 import { ErrorBoundary } from "@/components/misc";
 
-const RolesPage = () => {
+const PermissionsPage = () => {
   const [configureOpen, setConfigureOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
   const [manageUsersOpen, setManageUsersOpen] = useState(false);
-  const [role, setRole] = useState("");
+  const [permission, setPermission] = useState("");
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -38,31 +37,31 @@ const RolesPage = () => {
   const [shouldThrowError, setShouldThrowError] = useState(false);
 
   useEffect(() => {
-    getRoles()
-      .then((roles) => {
-        setRealData(roles);
+    getPermissions()
+      .then((permissions) => {
+        setRealData(permissions);
       })
       .catch((err) => {
         setShouldThrowError(true);
       });
   }, [newOpen, configureOpen]);
 
-  const getRoleFromName = useCallback(
+  const getPermissionFromName = useCallback(
     (name) => {
-      const role = realData.find((rl) => rl["name"] === name);
+      const permission = realData.find((rl) => rl["name"] === name);
 
-      console.log(`role: ${JSON.stringify(role)}`)
+      console.log(`permission: ${JSON.stringify(permission)}`)
 
-      return role;
+      return permission;
     },
     [realData]
   );
 
-  const getRoleFromID = useCallback(
+  const getPermissionFromID = useCallback(
     (id) => {
-      const role = realData.find((rl) => rl["id"] === id);
-      console.log(`getRoleFromID: ${JSON.stringify(role)}`)
-      return role;
+      const permission = realData.find((rl) => rl["id"] === id);
+      console.log(`getPermissionFromID: ${JSON.stringify(permission)}`)
+      return permission;
     },
     [realData]
   );
@@ -85,11 +84,11 @@ const RolesPage = () => {
       <Grid>
         <Column lg={16} md={8} sm={4}>
           <Section level={1}>
-            <Heading className='mb-4' style={{'fontSize': 20}}>Roles</Heading>
+            <Heading className='mb-4' style={{'fontSize': 20}}>Permissions</Heading>
             <Button onClick={() => setNewOpen(true)} kind="primary">
-              New Role
+              New Permission
             </Button>
-            <NewRoleModal open={newOpen} setOpen={setNewOpen} />
+            <NewPermissionModal open={newOpen} setOpen={setNewOpen} />
             <Table>
               <TableHead>
                 <TableRow>
@@ -100,27 +99,37 @@ const RolesPage = () => {
               </TableHead>
               <TableBody>
                 {realData
-                  .filter((role) => {
-                    return role["name"]
+                  .filter((permission) => {
+                    return permission["name"]
                       .toLowerCase()
                       .includes(searchString.toLowerCase());
                   })
                   .slice((page - 1) * pageSize, page * pageSize)
-                  .map((role) => {
+                  .map((permission) => {
                     return (
-                      <TableRow key={"role/" + role["id"]}>
-                        <TableCell>{role["name"]}</TableCell>
-                        <TableCell>{role["description"]}</TableCell>
+                      <TableRow key={"permission/" + permission["id"]}>
+                        <TableCell>{permission["name"]}</TableCell>
+                        <TableCell>{permission["description"]}</TableCell>
                         <TableCell>
                           <Button
-                            id={"role/configure/" + role["id"]}
+                            id={"permission/configure/" + permission["id"]}
                             kind="ghost"
                             onClick={() => {
-                              setRole(getRoleFromName(role["name"]));
+                              setPermission(getPermissionFromName(permission["name"]));
                               setConfigureOpen(true);
                             }}
                           >
                             Configure
+                          </Button>
+                          <Button
+                            id={"permission/manageusers/" + permission["id"]}
+                            kind="ghost"
+                            onClick={() => {
+                              setPermission(getPermissionFromID(permission["id"]));
+                              setManageUsersOpen(true);
+                            }}
+                          >
+                            Manage Users
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -137,16 +146,19 @@ const RolesPage = () => {
             />
           </Section>
         </Column>
-        <ConfigureRoleModalProvider>
-          <ConfigureRoleModal
-            open={configureOpen}
-            setOpen={setConfigureOpen}
-            role={role}
-          />
-        </ConfigureRoleModalProvider>
+        <ConfigurePermissionModal
+          open={configureOpen}
+          setOpen={setConfigureOpen}
+          permission={permission}
+        />
+        <ManageUsersForPermissionModal
+          open={manageUsersOpen}
+          setOpen={setManageUsersOpen}
+          permission={permission}
+        />
       </Grid>
     </ErrorBoundary>
   );
 };
 
-export default RolesPage;
+export default PermissionsPage;

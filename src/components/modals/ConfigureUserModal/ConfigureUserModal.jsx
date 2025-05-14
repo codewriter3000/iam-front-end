@@ -25,7 +25,7 @@ import {
   removeManyRolesFromUser,
 } from "@/../lib";
 
-import { useConfigureUserModal, UserInformationPanel, UserRolesPanel } from "@/components/modals/ConfigureUserModal/index.js";
+import { useConfigureUserModal, UserInformationPanel, RolesAndPermissionsPanel } from "@/components/modals/ConfigureUserModal/index.js";
 
 const ConfigureUserModal = ({ user, open, setOpen }) => {
   const context = useConfigureUserModal();
@@ -95,8 +95,8 @@ const ConfigureUserModal = ({ user, open, setOpen }) => {
         panel: <UserInformationPanel user={user} />,
       },
       {
-        label: "User Roles",
-        panel: <UserRolesPanel user={user} />,
+        label: "Roles and Permissions",
+        panel: <RolesAndPermissionsPanel user={user} />,
       },
     ],
     [user]
@@ -130,6 +130,7 @@ const ConfigureUserModal = ({ user, open, setOpen }) => {
 
   return (
       <Modal
+        preventCloseOnClickOutside={true}
         open={open}
         onRequestClose={() => handleClose()}
         modalHeading={`Configure ${user?.["username"]}`}
@@ -138,12 +139,10 @@ const ConfigureUserModal = ({ user, open, setOpen }) => {
         primaryButtonText="Save Changes"
         onRequestSubmit={() => {
           const updatedUserPayload = {
-            username: user["username"],
+            username: username,
             first_name: firstName,
             last_name: lastName,
             email: email,
-            is_admin: isAdmin,
-            is_enabled: isEnabled,
           };
 
           updateUser(user["id"], updatedUserPayload).then(() => {

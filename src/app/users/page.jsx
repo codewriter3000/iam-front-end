@@ -53,7 +53,7 @@ const UsersPage = () => {
 
       return user;
     },
-    [user]
+    [user, realData]
   );
 
   const changePaginationState = (pageInfo) => {
