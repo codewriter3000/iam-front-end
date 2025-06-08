@@ -31,10 +31,13 @@ const NewRoleModal = ({ open, setOpen }) => {
                 setNameInvalid(false);
                 setDescriptionInvalid(false);
 
+                console.log("Creating role with name:", name);
+                console.log("Creating role with description:", description);
+
                 createRole({
                     name: name,
                     description: description,
-                    permissions: permissions,
+                    //permissions: permissions,
                 })
                     .then(() => {
                         setOpen(false);
@@ -58,7 +61,14 @@ const NewRoleModal = ({ open, setOpen }) => {
             secondaryButtonText="Cancel"
             primaryButtonText="Create Role"
         >
-            <Stack>
+            <Stack gap={7}>
+                <p
+                    style={{
+                        marginBottom: "1rem",
+                        marginTop: "1rem",
+                    }}>
+                    This is where you can create a new role. You can set the name and description of the role to better reflect its purpose.
+                </p>
                 <TextInput
                     id="name"
                     labelText="Name"

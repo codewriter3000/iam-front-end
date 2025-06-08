@@ -7,8 +7,9 @@ import {
   Button,
 } from "@carbon/react";
 import { useConfigureUserModal } from "./index";
+import { deleteUser } from "@/../lib";
 
-const UserInformationPanel = ({ user }) => {
+const UserInformationPanel = ({ user, setOpen }) => {
   const {
     isAdmin,
     setIsAdmin,

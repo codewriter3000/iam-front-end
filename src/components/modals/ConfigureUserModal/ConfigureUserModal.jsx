@@ -92,14 +92,14 @@ const ConfigureUserModal = ({ user, open, setOpen }) => {
     () => [
       {
         label: "User Information",
-        panel: <UserInformationPanel user={user} />,
+        panel: <UserInformationPanel user={user} setOpen={setOpen} />,
       },
       {
         label: "Roles and Permissions",
         panel: <RolesAndPermissionsPanel user={user} />,
       },
     ],
-    [user]
+    [user, setOpen]
   );
 
   useEffect(() => {
