@@ -25,15 +25,18 @@ const AppHeader = () => {
   return (
     <HeaderContainer
       render={({ isSideNavExpanded, onClickSideNavExpand }) => (
-        <Header aria-label="Identity & Access Manager">
+        <Header aria-label="Admin Studio">
           <SkipToContent />
           <HeaderMenuButton
             aria-label="Open menu"
             onClick={onClickSideNavExpand}
             isActive={isSideNavExpanded}
           />
-          <HeaderName href="/">Identity & Access Manager</HeaderName>
-          <HeaderNavigation aria-label="Identity & Access Manager">
+          <a href="/" className="cds--header__name">
+            <span className="cds--header__name--prefix">CW3</span>
+            &nbsp;Admin Studio
+          </a>
+          <HeaderNavigation aria-label="Admin Studio">
             <HeaderMenuItem href="/users">Users</HeaderMenuItem>
             <HeaderMenuItem href="/roles">Roles</HeaderMenuItem>
             <HeaderMenuItem href="/permissions">Permissions</HeaderMenuItem>

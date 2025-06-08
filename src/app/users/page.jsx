@@ -1,107 +1,103 @@
 "use client";
 import {
-    Button,
-    Column,
-    Grid,
-    Heading,
-    Pagination,
-    Search,
-    Section,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-    Tag
+  DataTable,
+  Button,
+  Column,
+  Grid,
+  Heading,
+  Pagination,
+  Search,
+  Section,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableToolbar,
+  TableToolbarContent,
+  TableToolbarSearch,
+  Tag,
 } from "@carbon/react";
-import { useCallback, useEffect, useState } from "react";
-import { getUsers, getUserByID } from "@/../lib";
+import { useEffect, useState, useMemo } from "react";
+import { getUsers } from "@/../lib";
 import { NewUserModal } from "@/components/modals";
 import { ErrorBoundary } from "@/components/misc";
-import { ConfigureUserModalProvider, ConfigureUserModal } from "@/components/modals/ConfigureUserModal/index.js";
+import {
+  ConfigureUserModalProvider,
+  ConfigureUserModal,
+} from "@/components/modals/ConfigureUserModal/index.js";
+
+import "./_users-page.scss";
+
+const filterUsers = (users, searchString) => {
+  if (!searchString) return users;
+  const lower = searchString.toLowerCase();
+  return users.filter(
+    (user) =>
+      (user.id && user.id.toString().includes(lower)) ||
+      (user.username && user.username.toLowerCase().includes(lower)) ||
+      (user.first_name && user.first_name.toLowerCase().includes(lower)) ||
+      (user.last_name && user.last_name.toLowerCase().includes(lower))
+  );
+};
 
 const UsersPage = () => {
-
   const [configureOpen, setConfigureOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
   const [user, setUser] = useState("");
-
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-
   const [searchString, setSearchString] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-
   const [realData, setRealData] = useState([]);
-
   const [shouldThrowError, setShouldThrowError] = useState(false);
+  const [sortBy, setSortBy] = useState({ key: "last_name", direction: "asc" });
 
   useEffect(() => {
     getUsers()
-      .then((users) => {
-        setRealData(users);
-      })
-      .catch((err) => {
-        setShouldThrowError(true);
-      });
+      .then(setRealData)
+      .catch(() => setShouldThrowError(true));
   }, [newOpen, configureOpen]);
 
-  const getUserFromUsername = useCallback(
-    (username) => {
-      const user = realData.find((usr) => usr["username"] === username);
-
-      return user;
-    },
-    [user, realData]
+  const searchResults = useMemo(
+    () => filterUsers(realData, searchString),
+    [realData, searchString]
   );
 
-  const changePaginationState = (pageInfo) => {
-    if (page !== pageInfo.page) {
-      setPage(pageInfo.page);
-    }
+  const tableHeaders = [
+    { key: "last_name", header: "Last Name", isSortable: true },
+    { key: "first_name", header: "First Name", isSortable: true },
+    { key: "username", header: "Username", isSortable: true },
+    { key: "actions", header: "Actions" }, // actions column is not sortable
+  ];
 
-    if (pageSize !== pageInfo.pageSize) {
-      setPageSize(pageInfo.pageSize);
+  const sortedResults = useMemo(() => {
+    const sorted = [...searchResults];
+    if (sortBy.key && sortBy.key !== "actions") {
+      sorted.sort((a, b) => {
+        const aVal = a[sortBy.key] || "";
+        const bVal = b[sortBy.key] || "";
+        if (aVal < bVal) return sortBy.direction === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortBy.direction === "asc" ? 1 : -1;
+        return 0;
+      });
     }
+    return sorted;
+  }, [searchResults, sortBy]);
+
+  const paginatedResults = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return sortedResults.slice(start, start + pageSize);
+  }, [sortedResults, page, pageSize]);
+
+  const changePaginationState = ({ page: newPage, pageSize: newPageSize }) => {
+    setPage(newPage);
+    setPageSize(newPageSize);
   };
 
-  useEffect(() => {
-    // if (!realData) {
-    //   setSearchResults([...getUsers()]);
-    // } else {
-      setSearchResults([...realData]);
-    // }
-
-    if (searchString.length > 0) {
-      setSearchResults(
-        realData.filter((result) => {
-            return (
-            (result["username"] &&
-              result["username"]
-              .toLowerCase()
-              .includes(searchString.toLowerCase())) ||
-            (result["first_name"] &&
-              result["first_name"]
-              .toLowerCase()
-              .includes(searchString.toLowerCase())) ||
-            (result["last_name"] &&
-              result["last_name"]
-              .toLowerCase()
-              .includes(searchString.toLowerCase()))
-            );
-        })
-      );
-    }
-
-    setPage(1);
-  }, [searchString, realData]);
-
   return (
-    <ErrorBoundary
-      trigger={shouldThrowError}
-      fallback={<h1>An error has occurred</h1>}
-    >
+    <ErrorBoundary trigger={shouldThrowError}>
       <NewUserModal open={newOpen} setOpen={setNewOpen} />
       <ConfigureUserModalProvider>
         <ConfigureUserModal
@@ -111,17 +107,126 @@ const UsersPage = () => {
         />
       </ConfigureUserModalProvider>
       <Grid>
-        <Column className="" lg={16} md={8} sm={4}>
-          <Section level={1}>
-            <Heading className='mb-4' style={{'fontSize': 28}}>Users</Heading>
-          </Section>
-          <Button onClick={() => setNewOpen(!newOpen)}>New User</Button>
-          <Search
-            size="lg"
-            placeholder="Find a user"
-            labelText="Search"
-            id="user-search"
-            onChange={(evt) => setSearchString(evt.target.value)}
+        <Column lg={16} md={8} sm={4}>
+          <DataTable
+            rows={paginatedResults}
+            headers={tableHeaders}
+            render={({
+              rows,
+              headers,
+              getHeaderProps,
+              getRowProps,
+              getTableProps,
+              getTableContainerProps,
+              getToolbarProps,
+            }) => (
+              <TableContainer
+                title="Users"
+                description="Manage users, view details, and configure access."
+                {...getTableContainerProps()}
+              >
+                <TableToolbar {...getToolbarProps()}>
+                  <TableToolbarContent>
+                    <TableToolbarSearch
+                      value={searchString}
+                      onChange={(e) => {
+                        setSearchString(e.target.value);
+                        setPage(1);
+                      }}
+                    />
+                    <Button kind="primary" onClick={() => setNewOpen(true)}>
+                      New User
+                    </Button>
+                  </TableToolbarContent>
+                </TableToolbar>
+                <Table {...getTableProps()}>
+                  <TableHead>
+                    <TableRow>
+                      {headers.map((header) => {
+                        const { key, ...rest } = getHeaderProps({ header });
+                        return (
+                          <TableHeader
+                            key={header.key}
+                            {...rest}
+                            isSortable={header.isSortable}
+                            isSortHeader={sortBy.key === header.key}
+                            sortDirection={sortBy.direction}
+                            onClick={() => {
+                              if (!header.isSortable) return;
+                              setSortBy((prev) => ({
+                                key: header.key,
+                                direction:
+                                  prev.key === header.key &&
+                                  prev.direction === "asc"
+                                    ? "desc"
+                                    : "asc",
+                              }));
+                            }}
+                          >
+                            {header.header}
+                            {header.isSortable &&
+                              !(sortBy.key === header.key) && (
+                                <span style={{ visibility: "hidden" }}>
+                                  {/* This matches the sort icon's width */}▲
+                                </span>
+                              )}
+                          </TableHeader>
+                        );
+                      })}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {rows.map((row) => {
+                      const { key, ...rest } = getRowProps({ row });
+                      return (
+                        <TableRow key={row.id} {...rest}>
+                          <TableCell>
+                            {
+                              row.cells.find(
+                                (cell) => cell.info.header === "last_name"
+                              ).value
+                            }
+                          </TableCell>
+                          <TableCell>
+                            {
+                              row.cells.find(
+                                (cell) => cell.info.header === "first_name"
+                              ).value
+                            }
+                          </TableCell>
+                          <TableCell>
+                            {
+                              row.cells.find(
+                                (cell) => cell.info.header === "username"
+                              ).value
+                            }
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              id={row.id}
+                              kind="ghost"
+                              onClick={(event) => {
+                                event.preventDefault();
+                                setUser(
+                                  realData.filter(
+                                    (usr) =>
+                                      usr["id"].toString() ===
+                                      event.target["id"]
+                                  )[0]
+                                );
+                                setConfigureOpen(true);
+                              }}
+                            >
+                              Configure
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
           />
           <Pagination
             backwardText="Previous page"
@@ -134,62 +239,6 @@ const UsersPage = () => {
             size="md"
             totalItems={searchResults.length}
           />
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Last Name</TableHeader>
-                <TableHeader>First Name</TableHeader>
-                <TableHeader>Username</TableHeader>
-                <TableHeader>Actions</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {searchResults
-                .filter((user) => {
-                  return (
-                    page * pageSize > searchResults.indexOf(user) &&
-                    (page - 1) * pageSize <= searchResults.indexOf(user)
-                  );
-                })
-                .map((user) => {
-                  return (
-                    <TableRow key={user["id"]}>
-                      <TableCell>{user["last_name"]}</TableCell>
-                      <TableCell>{user["first_name"]}</TableCell>
-                      <TableCell>
-                        {user["username"]}
-                        {user["is_admin"] && (
-                          <>
-                            {" "}
-                            <Tag type="blue">Administrator</Tag>
-                          </>
-                        )}
-                        {user["is_enabled"] === false && (
-                          <>
-                            {" "}
-                            <Tag type="red">Disabled</Tag>
-                          </>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          id={user["id"]}
-                          kind="ghost"
-                          onClick={(event) => {
-                            event.preventDefault();
-                            setUser(
-                              realData.filter((usr) => usr["id"].toString() === event.target["id"])[0]);
-                            setConfigureOpen(true);
-                          }}
-                        >
-                          Configure
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-            </TableBody>
-          </Table>
         </Column>
       </Grid>
     </ErrorBoundary>

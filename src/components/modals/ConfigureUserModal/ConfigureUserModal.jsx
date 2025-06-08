@@ -21,8 +21,6 @@ import {
   deleteUser,
   getRolesForUser,
   getRoles,
-  addManyRolesToUser,
-  removeManyRolesFromUser,
 } from "@/../lib";
 
 import { useConfigureUserModal, UserInformationPanel, RolesAndPermissionsPanel } from "@/components/modals/ConfigureUserModal/index.js";
@@ -149,21 +147,21 @@ const ConfigureUserModal = ({ user, open, setOpen }) => {
             console.log("User successfully updated");
           });
 
-          const rolesToAdd = rolesBelongingToUser.filter(
-            (role) => !originalRolesBelongingToUser.includes(role)
-          );
+          // const rolesToAdd = rolesBelongingToUser.filter(
+          //   (role) => !originalRolesBelongingToUser.includes(role)
+          // );
 
-          const rolesToRemove = originalRolesBelongingToUser.filter(
-            (role) => !rolesBelongingToUser.includes(role)
-          );
+          // const rolesToRemove = originalRolesBelongingToUser.filter(
+          //   (role) => !rolesBelongingToUser.includes(role)
+          // );
 
-          addManyRolesToUser(user["id"], rolesToAdd).then(() => {
-            console.log("Roles successfully added");
-          });
+          // addManyRolesToUser(user["id"], rolesToAdd).then(() => {
+          //   console.log("Roles successfully added");
+          // });
 
-          removeManyRolesFromUser(user["id"], rolesToRemove).then(() => {
-            console.log("Roles successfully removed");
-          });
+          // removeManyRolesFromUser(user["id"], rolesToRemove).then(() => {
+          //   console.log("Roles successfully removed");
+          // });
 
           setOpen(false);
         }}

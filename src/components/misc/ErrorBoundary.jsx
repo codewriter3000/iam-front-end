@@ -1,4 +1,4 @@
-const ErrorBoundary = ({ trigger, fallback, children }) => {
+const ErrorBoundary = ({ trigger, fallback=<h1>An error has occurred</h1>, children }) => {
     if (trigger) {
       return fallback;
     } else {
