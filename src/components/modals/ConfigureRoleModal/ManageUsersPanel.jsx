@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Button,
   DataTable,
@@ -14,7 +14,9 @@ import {
   TableRow,
   TableSelectAll,
   TableSelectRow,
+  TableContainer,
 } from "@carbon/react";
+import { useConfigureRoleModal } from "./ConfigureRoleModalContext";
 
 import { getUsers } from "@/../lib";
 
@@ -25,10 +27,44 @@ const ManageUsersPanel = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [realData, setRealData] = useState([]);
 
+  const context = useConfigureRoleModal();
+
+  const { users, setUsers } = context;
+
+  if (!context) {
+    throw new Error(
+      "useConfigureRoleModal must be used within a ConfigureRoleModalProvider"
+    );
+  }
+
+  const { role } = context;
+
+  // Ensure isRowSelected always reflects the latest users state
+  const isRowSelected = useCallback(
+    (row) => users && users.some((u) => u.id === row.id),
+    [users]
+  );
+
+  const getSelectionPropsCI = useCallback(
+    (props = {}) => {
+      const baseProps = context.getSelectionProps
+        ? context.getSelectionProps(props)
+        : {};
+      if (props.row) {
+        return {
+          ...baseProps,
+          checked: isRowSelected(props.row),
+        };
+      }
+      return baseProps;
+    },
+    [context, isRowSelected]
+  );
+
   useEffect(() => {
-    // Simulate fetching data from an API
     getUsers()
       .then((users) => {
+        console.log(users);
         setRealData(users);
       })
       .catch((err) => {
@@ -45,6 +81,12 @@ const ManageUsersPanel = () => {
       setPageSize(pageInfo.pageSize);
     }
   };
+
+  const headers = [
+    { key: "last_name", header: "Last Name" },
+    { key: "first_name", header: "First Name" },
+    { key: "username", header: "Username" },
+  ];
 
   useEffect(() => {
     setSearchResults([...realData]);
@@ -105,72 +147,79 @@ const ManageUsersPanel = () => {
         />
         <DataTable
           checked={true}
-          rows={["Last Name", "First Name", "Username"]}
-          headers={[
-            { key: "last_name", header: "Last Name" },
-            { key: "first_name", header: "First Name" },
-            { key: "username", header: "Username" },
-          ]}
-        >
-          {({
+          rows={searchResults}
+          headers={headers}
+          render={({
             rows,
             headers,
-            getTableProps,
             getHeaderProps,
-            getSelectionProps,
             getRowProps,
-            selectAll = true,
+            getSelectionProps,
+            getTableProps,
+            getTableContainerProps,
           }) => (
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableSelectAll {...getSelectionProps({ selectAll })} />
-                  {headers.map((header) => (
-                    <TableHeader
-                      key={header.key}
-                      {...getHeaderProps({ header })}
-                    >
-                      {header.header}
-                    </TableHeader>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {searchResults
-                  .filter((user) => {
-                    return (
-                      page * pageSize > searchResults.indexOf(user) &&
-                      (page - 1) * pageSize <= searchResults.indexOf(user)
-                    );
-                  })
-                  .map((user) => {
-                    return (
-                      <TableRow key={user["id"]}>
-                        <TableSelectRow {...getSelectionProps({ user })} />
-                        <TableCell>{user["last_name"]}</TableCell>
-                        <TableCell>{user["first_name"]}</TableCell>
-                        <TableCell>
-                          {user["username"]}
-                          {user["is_admin"] && (
-                            <>
-                              {" "}
-                              <Tag type="blue">Administrator</Tag>
-                            </>
-                          )}
-                          {user["is_enabled"] === false && (
-                            <>
-                              {" "}
-                              <Tag type="red">Disabled</Tag>
-                            </>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-              </TableBody>
-            </Table>
+            <TableContainer
+              title="Users"
+              description="List of users"
+              {...getTableContainerProps()}
+            >
+              <Table {...getTableProps()}>
+                <TableHead>
+                  <TableRow>
+                    <TableSelectAll {...getSelectionProps()} />
+                    {headers.map((header) => (
+                      <TableHeader
+                        key={header.key}
+                        {...getHeaderProps({ header })}
+                      >
+                        {header.header}
+                      </TableHeader>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows
+                    .filter((user) => {
+                      return (
+                        page * pageSize > rows.indexOf(user) &&
+                        (page - 1) * pageSize <= rows.indexOf(user)
+                      );
+                    })
+                    .map((user) => (
+                        <TableRow
+                          key={user["id"]}
+                          {...getRowProps({ row: user })}
+                        >
+                          <TableSelectRow
+                            {...getSelectionProps({ row: user })}
+                            checked={isRowSelected(user)}
+                            onSelect={() => {
+                              // Extract the row id here
+                              const rowId = user.id || user["id"];
+                              console.log("Row selected, id:", rowId);
+                              console.log("Selected users:", users);
+                              if (isRowSelected(user)) {
+                                setUsers((prevUsers) =>
+                                  prevUsers.filter((u) => u.id !== rowId)
+                                );
+                              } else {
+                                setUsers((prevUsers) => [
+                                  ...prevUsers,
+                                  user,
+                                ]);
+                              }
+                            }}
+                          />
+                          {user.cells.map((cell) => (
+                            <TableCell key={cell.id}>{cell.value}</TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
-        </DataTable>
+        />
       </div>
     </Stack>
   );

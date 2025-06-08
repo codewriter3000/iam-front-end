@@ -19,6 +19,8 @@ const ConfigureRoleModal = ({ role, open, setOpen }) => {
         setName,
         description,
         setDescription,
+        users,
+        setUsers,
         deleteStage,
         setDeleteStage,
         isDeleteAccordionOpened,
@@ -26,17 +28,12 @@ const ConfigureRoleModal = ({ role, open, setOpen }) => {
     } = context;
 
     useEffect(() => {
+        console.log("Role in ConfigureRoleModal:", role);
         setName(role?.["name"]);
         setDescription(role?.["description"]);
         setDeleteStage("Delete Role");
-    }, [role, setDeleteStage, setDescription, setName]);
-
-    useEffect(() => {
-        if (role) {
-            setName(role?.["name"]);
-            setDescription(role?.["description"]);
-        }
-    }, [role, setDescription, setName]);
+        setUsers(role?.["users"] || []);
+    }, [role, setDeleteStage, setDescription, setName, setUsers]);
 
     const tabs = useMemo(
         () => [
@@ -118,9 +115,11 @@ const ConfigureRoleModal = ({ role, open, setOpen }) => {
                 const updatedRolePayload = {
                     name: name,
                     description: description,
+                    users: users.map((user) => ({ id: user.id })),
                 };
 
                 updateRole(role["id"], updatedRolePayload).then(() => {
+                    console.log("updatedRolePayload", updatedRolePayload);
                     console.log("Role successfully updated");
                 });
 

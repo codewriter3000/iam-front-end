@@ -16,7 +16,7 @@ import {
   Tag,
 } from "@carbon/react";
 import { useCallback, useEffect, useState } from "react";
-import { getRoles } from "@/../lib";
+import { getRoles, getRoleByID } from "@/../lib";
 import { NewRoleModal } from "@/components/modals";
 import { ConfigureRoleModal, ConfigureRoleModalProvider } from "@/components/modals/ConfigureRoleModal/index.js";
 import { ErrorBoundary } from "@/components/misc";
@@ -46,26 +46,6 @@ const RolesPage = () => {
         setShouldThrowError(true);
       });
   }, [newOpen, configureOpen]);
-
-  const getRoleFromName = useCallback(
-    (name) => {
-      const role = realData.find((rl) => rl["name"] === name);
-
-      console.log(`role: ${JSON.stringify(role)}`)
-
-      return role;
-    },
-    [realData]
-  );
-
-  const getRoleFromID = useCallback(
-    (id) => {
-      const role = realData.find((rl) => rl["id"] === id);
-      console.log(`getRoleFromID: ${JSON.stringify(role)}`)
-      return role;
-    },
-    [realData]
-  );
 
   const changePaginationState = (pageInfo) => {
     if (page !== pageInfo.page) {
@@ -109,20 +89,21 @@ const RolesPage = () => {
                   .map((role) => {
                     return (
                       <TableRow key={"role/" + role["id"]}>
-                        <TableCell>{role["name"]}</TableCell>
-                        <TableCell>{role["description"]}</TableCell>
-                        <TableCell>
-                          <Button
-                            id={"role/configure/" + role["id"]}
-                            kind="ghost"
-                            onClick={() => {
-                              setRole(getRoleFromName(role["name"]));
-                              setConfigureOpen(true);
-                            }}
-                          >
-                            Configure
-                          </Button>
-                        </TableCell>
+                      <TableCell>{role["name"]}</TableCell>
+                      <TableCell>{role["description"]}</TableCell>
+                      <TableCell>
+                        <Button
+                        id={"role/configure/" + role["id"]}
+                        kind="ghost"
+                        onClick={async () => {
+                          const roleData = await getRoleByID(role["id"]);
+                          setRole(roleData);
+                          setConfigureOpen(true);
+                        }}
+                        >
+                        Configure
+                        </Button>
+                      </TableCell>
                       </TableRow>
                     );
                   })}

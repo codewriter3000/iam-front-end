@@ -5,6 +5,7 @@ const ConfigureRoleModalContext = createContext();
 export const ConfigureRoleModalProvider = ({ children }) => {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
+    const [users, setUsers] = useState([]);
 
     const [deleteStage, setDeleteStage] = useState("Delete Role");
     const [isDeleteAccordionOpened, setIsDeleteAccordionOpened] = useState(false);
@@ -16,6 +17,8 @@ export const ConfigureRoleModalProvider = ({ children }) => {
                 setName,
                 description,
                 setDescription,
+                users,
+                setUsers,
                 deleteStage,
                 setDeleteStage,
                 isDeleteAccordionOpened,

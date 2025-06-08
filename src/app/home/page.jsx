@@ -7,15 +7,20 @@ import {
 } from "@carbon/react";
 import { useRef, useState, useEffect } from "react";
 import { useCountUp } from "react-countup";
-import { getUsers } from "@/../lib";
+import { getRoles, getUsers } from "@/../lib";
 
 export default function LandingPage() {
     const [realData, setRealData] = useState([])
+    const [roles, setRoles] = useState([])
 
     useEffect(() => {
         getUsers().then((data) => {
             setRealData(data)
             userCountUp.update(data.length)
+        })
+        getRoles().then((data) => {
+            setRoles(data)
+            roleCountUp.update(data.length)
         })
     }, [])
 
@@ -28,7 +33,7 @@ export default function LandingPage() {
     const roleCountUpRef = useRef(null)
     const roleCountUp = useCountUp({
         ref: roleCountUpRef,
-        end: realData.length
+        end: roles.length
     })
 
     const permissionCountUpRef = useRef(null)
