@@ -50,8 +50,9 @@ const ManageUsersForRoleModal = ({ role, open, setOpen }) => {
 
         getUsersWithRole(role?.["id"])
             .then((users) => {
-                setUsersWithRole(users);
-                setOriginalUsersWithRole(users);
+                const userIds = (users || []).map((u) => u.id || u["id"]);
+                setUsersWithRole(userIds);
+                setOriginalUsersWithRole(userIds);
             })
             .catch((err) => {
                 console.error(err);

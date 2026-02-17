@@ -50,8 +50,9 @@ const ManageUsersForPermissionModal = ({ permission, open, setOpen }) => {
 
         getUsersWithPermission(permission?.["id"])
             .then((users) => {
-                setUsersWithPermission(users);
-                setOriginalUsersWithPermission(users);
+                const userIds = (users || []).map((u) => u.id || u["id"]);
+                setUsersWithPermission(userIds);
+                setOriginalUsersWithPermission(userIds);
             })
             .catch((err) => {
                 console.error(err);
