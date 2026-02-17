@@ -17,7 +17,7 @@ import {
 } from "@carbon/react";
 import { useCallback, useEffect, useState } from "react";
 import { getPermissions } from "@/../lib";
-import { NewPermissionModal, ConfigurePermissionModal, ManageUsersForPermissionModal } from "@/components/modals";
+/*import { NewPermissionModal, ConfigurePermissionModal, ManageUsersForPermissionModal } from "@/components/modals";*/
 import { ErrorBoundary } from "@/components/misc";
 
 const PermissionsPage = () => {
@@ -88,7 +88,7 @@ const PermissionsPage = () => {
             <Button onClick={() => setNewOpen(true)} kind="primary">
               New Permission
             </Button>
-            <NewPermissionModal open={newOpen} setOpen={setNewOpen} />
+	  {/*<NewPermissionModal open={newOpen} setOpen={setNewOpen} />*/}
             <Table>
               <TableHead>
                 <TableRow>
@@ -146,16 +146,16 @@ const PermissionsPage = () => {
             />
           </Section>
         </Column>
-        <ConfigurePermissionModal
+	  {/*<ConfigurePermissionModal
           open={configureOpen}
           setOpen={setConfigureOpen}
           permission={permission}
-        />
-        <ManageUsersForPermissionModal
+        />*/}
+	  {/*<ManageUsersForPermissionModal
           open={manageUsersOpen}
           setOpen={setManageUsersOpen}
           permission={permission}
-        />
+        />*/}
       </Grid>
     </ErrorBoundary>
   );

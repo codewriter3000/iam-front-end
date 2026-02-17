@@ -78,7 +78,7 @@ const NewUserModal = ({ open, setOpen }) => {
         setPasswordInvalid(false);
         setFirstNameInvalid(false);
         setLastNameInvalid(false);
-
+        setEmailInvalid(false);
         registerUser({
           username: username,
           password: password,
@@ -176,7 +176,7 @@ const NewUserModal = ({ open, setOpen }) => {
           invalidText={emailInvalidText}
           onChange={(evt) => setEmail(evt.target.value)}
         />
-        {/* <div className="grid grid-cols-2">
+        <div className="grid grid-cols-2">
           <div>
             <Toggle
               labelText="Is admin"
@@ -197,7 +197,7 @@ const NewUserModal = ({ open, setOpen }) => {
               onClick={() => setIsEnabled(!isEnabled)}
             />
           </div>
-        </div> */}
+        </div>
       </Stack>
     </Modal>
   );

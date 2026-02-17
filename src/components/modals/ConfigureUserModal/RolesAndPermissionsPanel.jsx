@@ -1,9 +1,18 @@
 import { Stack, FilterableMultiSelect } from "@carbon/react";
 import { useConfigureUserModal, Permissions } from "./index";
 
-const RolesAndPermissionsPanel = () => {
+const RolesAndPermissionsPanel = ({ user }) => {
   const { allRoles, rolesBelongingToUser, setRolesBelongingToUser } =
     useConfigureUserModal();
+
+  const roleItems = (allRoles || []).map((role) => ({
+    id: role["id"],
+    text: role["name"],
+  }));
+
+  const selectedRoleItems = roleItems.filter((item) =>
+    (rolesBelongingToUser || []).map(String).includes(String(item.id))
+  );
 
   return (
       <Stack gap={7}>
@@ -19,17 +28,9 @@ const RolesAndPermissionsPanel = () => {
         <div>
           {allRoles.length > 0 ? (
             <FilterableMultiSelect
-              items={allRoles?.map((role) => ({
-                id: role["id"],
-                text: role["name"],
-              }))}
+              items={roleItems}
               itemToString={(item) => (item ? item.text : "")}
-              initialSelectedItems={allRoles
-                ?.filter((role) => rolesBelongingToUser?.includes(role["id"]))
-                .map((role) => ({
-                  id: role["id"],
-                  text: role["name"],
-                }))}
+              selectedItems={selectedRoleItems}
               onChange={({ selectedItems }) => {
                 setRolesBelongingToUser(selectedItems.map((item) => item.id));
               }}
@@ -41,7 +42,7 @@ const RolesAndPermissionsPanel = () => {
             <div className="text-center">There are no roles in the system.</div>
           )}
         </div>
-        <Permissions />
+        <Permissions userID={user?.["id"]} />
       </Stack>
   );
 };

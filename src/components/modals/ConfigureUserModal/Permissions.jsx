@@ -14,12 +14,16 @@ import {
 
 import { useEffect, useState } from "react";
 
-const Permissions = () => {
+import { getUserPermissions } from "@/../lib/users";
+
+const Permissions = ({ userID }) => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
   const [searchString, setSearchString] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [realData, setRealData] = useState([
+  const [realData, setRealData] = useState([]);
+
+  const mockData = [
     {
       id: 1,
       permission: "Permission 1A",
@@ -84,26 +88,43 @@ const Permissions = () => {
       id: 13,
       permission: "Permission 4A",
     },
-  ]);
+  ];
 
   useEffect(() => {
-    setSearchResults(realData);
+    const fetchPermissions = async () => {
+      const fetched = (await getUserPermissions(userID)) || [];
+      console.log("Fetched permissions:", JSON.stringify(fetched));
 
-    if (searchString.length > 0) {
-      setSearchResults(
-        realData.filter((result) => {
+      const normalized = fetched.map((item) => {
+        const name = item.name || item.permission || "";
+        return {
+          id: item.id,
+          permission: name,
+          assignedFrom: item.assignedFrom || null,
+          systemAssigned: name === "Administrator" || name === "Active" || !!item.systemAssigned,
+        };
+      });
+
+      setRealData(normalized);
+
+      if (searchString.length > 0) {
+        setSearchResults(
+          normalized.filter((result) => {
             return (
-            result["permission"] &&
-              result["permission"]
-              .toLowerCase()
-              .includes(searchString.toLowerCase())
+              result["permission"] &&
+              result["permission"].toLowerCase().includes(searchString.toLowerCase())
             );
-        })
-      );
-    }
+          })
+        );
+      } else {
+        setSearchResults(normalized);
+      }
 
-    setPage(1);
-  }, [searchString, searchResults, realData]);
+      setPage(1);
+    };
+
+    fetchPermissions();
+  }, [userID, searchString]);
 
   const changePaginationState = (pageInfo) => {
     if (page !== pageInfo.page) {
@@ -114,6 +135,8 @@ const Permissions = () => {
       setPageSize(pageInfo.pageSize);
     }
   };
+
+  const safeResults = Array.isArray(searchResults) ? searchResults : [];
 
   return (
     <div>
@@ -133,7 +156,7 @@ const Permissions = () => {
         pageSize={pageSize}
         pageSizes={[6]}
         size="md"
-        totalItems={searchResults.length}
+        totalItems={safeResults.length}
       />
       <Table>
         <TableHead>
@@ -143,20 +166,18 @@ const Permissions = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {searchResults
-            .filter((searchString) => {
-              return (
-                page * pageSize > searchResults.indexOf(searchString) &&
-                (page - 1) * pageSize <= searchResults.indexOf(searchString)
-              );
+          {safeResults
+            .filter((_, idx) => {
+              return idx < page * pageSize && idx >= (page - 1) * pageSize;
             })
             .map((searchResult) => {
               return (
                 <TableRow key={searchResult.id}>
                   <TableCell>{searchResult.permission}</TableCell>
                   <TableCell>
-                    {searchResult?.assignedFrom ? searchResult?.assignedFrom :
-                    searchResult?.systemAssigned ? (
+                    {searchResult?.assignedFrom ? (
+                      searchResult?.assignedFrom
+                    ) : searchResult?.systemAssigned ? (
                       <span className="inline-flex items-center">
                         <Tag type="blue">System</Tag>
                         <Tooltip className="ml-1" label="Added by the system.">
@@ -166,7 +187,10 @@ const Permissions = () => {
                     ) : (
                       <span className="inline-flex items-center">
                         <Tag type="red">Manual</Tag>
-                        <Tooltip className="ml-1" label="Added manually by an administrator. Not recommended.">
+                        <Tooltip
+                          className="ml-1"
+                          label="Added manually by an administrator. Not recommended."
+                        >
                           <Information size={16} />
                         </Tooltip>
                       </span>

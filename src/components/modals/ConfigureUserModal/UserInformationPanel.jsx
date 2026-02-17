@@ -74,7 +74,7 @@ const UserInformationPanel = ({ user, setOpen }) => {
           value={email || ""}
           onChange={(evt) => setEmail(evt.target.value)}
         />
-        {/* <div className="grid grid-cols-2">
+        <div className="grid grid-cols-2">
           <div>
             <Toggle
               labelText="Is admin"
@@ -95,7 +95,7 @@ const UserInformationPanel = ({ user, setOpen }) => {
               onClick={() => setIsEnabled(!isEnabled)}
             />
           </div>
-        </div> */}
+        </div>
         <Accordion>
           <AccordionItem open={isDeleteAccordionOpened} title="Delete Account">
             <div className="flex">
