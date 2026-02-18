@@ -15,101 +15,53 @@ import {
 import { useEffect, useState } from "react";
 
 import { getUserPermissions } from "@/../lib/users";
+import { getPermissionsForRole } from "@/../lib/roles";
 
-const Permissions = ({ userID }) => {
+const Permissions = ({ userID, selectedRoles = [] }) => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
   const [searchString, setSearchString] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [realData, setRealData] = useState([]);
 
-  const mockData = [
-    {
-      id: 1,
-      permission: "Permission 1A",
-      assignedFrom: "Role 1",
-    },
-    {
-      id: 2,
-      permission: "Permission 1B",
-      assignedFrom: "Role 1",
-    },
-    {
-      id: 3,
-      permission: "Permission 2A",
-      assignedFrom: "Role 2",
-    },
-    {
-      id: 4,
-      permission: "Permission 2B",
-      assignedFrom: "Role 2",
-    },
-    {
-      id: 5,
-      permission: "Permission 2C",
-      assignedFrom: "Role 2",
-    },
-    {
-      id: 6,
-      permission: "Permission 2D",
-      assignedFrom: "Role 2",
-    },
-    {
-      id: 7,
-      permission: "Permission 2E",
-      assignedFrom: "Role 2",
-    },
-    {
-      id: 8,
-      permission: "Permission 3A",
-      assignedFrom: "Role 3",
-    },
-    {
-      id: 9,
-      permission: "Permission 3B",
-      assignedFrom: "Role 3",
-    },
-    {
-      id: 10,
-      permission: "Permission 3C",
-      assignedFrom: "Role 3",
-    },
-    {
-      id: 11,
-      permission: "Administrator",
-      systemAssigned: true,
-    },
-    {
-      id: 12,
-      permission: "Enabled",
-      systemAssigned: true,
-    },
-    {
-      id: 13,
-      permission: "Permission 4A",
-    },
-  ];
-
   useEffect(() => {
     const fetchPermissions = async () => {
-      const fetched = (await getUserPermissions(userID)) || [];
-      console.log("Fetched permissions:", JSON.stringify(fetched));
+      const fetchedUserPermissions = (await getUserPermissions(userID)) || [];
 
-      const normalized = fetched.map((item) => {
+      const normalizedUserPermissions = fetchedUserPermissions.map((item) => {
         const name = item.name || item.permission || "";
         return {
-          id: item.id,
+          id: `user-${item.id || name}`,
           permission: name,
           assignedFrom: item.assignedFrom || null,
           systemAssigned: name === "Administrator" || name === "Active" || !!item.systemAssigned,
         };
       });
 
-      setRealData(normalized);
+      const rolePermissionTasks = (selectedRoles || []).map(async (role) => {
+        const permissions = (await getPermissionsForRole(role.id)) || [];
+
+        return permissions.map((permission) => ({
+          id: `role-${role.id}-${permission.id || permission.name}`,
+          permission: permission.name || permission.permission || "",
+          assignedFrom: role.text,
+          systemAssigned: false,
+        }));
+      });
+
+      const rolePermissionsNested = await Promise.all(rolePermissionTasks);
+      const normalizedRolePermissions = rolePermissionsNested.flat();
+
+      const merged = [...normalizedUserPermissions, ...normalizedRolePermissions];
+      const deduped = Array.from(
+        new Map(merged.map((item) => [`${item.permission}-${item.assignedFrom || "none"}-${item.id}`, item])).values()
+      );
+
+      setRealData(deduped);
 
       if (searchString.length > 0) {
         setSearchResults(
-          normalized.filter((result) => {
+          deduped.filter((result) => {
             return (
               result["permission"] &&
               result["permission"].toLowerCase().includes(searchString.toLowerCase())
@@ -117,14 +69,14 @@ const Permissions = ({ userID }) => {
           })
         );
       } else {
-        setSearchResults(normalized);
+        setSearchResults(deduped);
       }
 
       setPage(1);
     };
 
     fetchPermissions();
-  }, [userID, searchString]);
+  }, [userID, searchString, selectedRoles]);
 
   const changePaginationState = (pageInfo) => {
     if (page !== pageInfo.page) {

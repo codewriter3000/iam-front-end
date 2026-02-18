@@ -42,7 +42,7 @@ const RolesAndPermissionsPanel = ({ user }) => {
             <div className="text-center">There are no roles in the system.</div>
           )}
         </div>
-        <Permissions userID={user?.["id"]} />
+        <Permissions userID={user?.["id"]} selectedRoles={selectedRoleItems} />
       </Stack>
   );
 };

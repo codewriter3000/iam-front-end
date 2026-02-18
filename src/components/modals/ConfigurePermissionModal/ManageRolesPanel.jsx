@@ -16,9 +16,9 @@ import {
 } from "@carbon/react";
 import { useConfigurePermissionModal } from "./ConfigurePermissionModalContext";
 
-import { getUsers } from "@/../lib";
+import { getRoles } from "@/../lib";
 
-const ManageUsersPanel = () => {
+const ManageRolesPanel = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
   const [searchString, setSearchString] = useState("");
@@ -33,19 +33,17 @@ const ManageUsersPanel = () => {
     );
   }
 
-  const { users, setUsers } = context;
+  const { roles, setRoles } = context;
 
-  // Ensure isRowSelected always reflects the latest users state
   const isRowSelected = useCallback(
-    (row) => (users || []).map(String).includes(String(row.id || row["id"])),
-    [users]
+    (row) => (roles || []).map(String).includes(String(row.id || row["id"])),
+    [roles]
   );
 
   useEffect(() => {
-    getUsers()
-      .then((users) => {
-        console.log(users);
-        setRealData(users);
+    getRoles()
+      .then((items) => {
+        setRealData(items || []);
       })
       .catch((err) => {
         console.error(err);
@@ -63,9 +61,8 @@ const ManageUsersPanel = () => {
   };
 
   const headers = [
-    { key: "last_name", header: "Last Name" },
-    { key: "first_name", header: "First Name" },
-    { key: "username", header: "Username" },
+    { key: "name", header: "Role Name" },
+    { key: "description", header: "Description" },
   ];
 
   useEffect(() => {
@@ -75,16 +72,12 @@ const ManageUsersPanel = () => {
       setSearchResults(
         realData.filter((result) => {
           return (
-            (result["username"] &&
-              result["username"]
+            (result["name"] &&
+              result["name"]
                 .toLowerCase()
                 .includes(searchString.toLowerCase())) ||
-            (result["first_name"] &&
-              result["first_name"]
-                .toLowerCase()
-                .includes(searchString.toLowerCase())) ||
-            (result["last_name"] &&
-              result["last_name"]
+            (result["description"] &&
+              result["description"]
                 .toLowerCase()
                 .includes(searchString.toLowerCase()))
           );
@@ -103,14 +96,15 @@ const ManageUsersPanel = () => {
           marginTop: "1rem",
         }}
       >
-        Directly adding or removing permissions from users is not recommended, as it can lead to a complex and hard-to-maintain permission structure. Instead, consider managing permissions through roles.
+        This is where you can view and manage the roles that include this
+        permission.
       </p>
       <div>
         <Search
           size="lg"
-          placeholder="Find a user"
+          placeholder="Find a role"
           labelText="Search"
-          id="user-search"
+          id="role-search"
           onChange={(evt) => setSearchString(evt.target.value)}
         />
         <Pagination
@@ -138,8 +132,8 @@ const ManageUsersPanel = () => {
             getTableContainerProps,
           }) => (
             <TableContainer
-              title="Users"
-              description="List of users"
+              title="Roles"
+              description="List of roles"
               {...getTableContainerProps()}
             >
               <Table {...getTableProps()}>
@@ -158,39 +152,39 @@ const ManageUsersPanel = () => {
                 </TableHead>
                 <TableBody>
                   {rows
-                    .filter((user) => {
+                    .filter((role) => {
                       return (
-                        page * pageSize > rows.indexOf(user) &&
-                        (page - 1) * pageSize <= rows.indexOf(user)
+                        page * pageSize > rows.indexOf(role) &&
+                        (page - 1) * pageSize <= rows.indexOf(role)
                       );
                     })
-                    .map((user) => (
-                        <TableRow
-                          key={user["id"]}
-                          {...getRowProps({ row: user })}
-                        >
-                          <TableSelectRow
-                            {...getSelectionProps({ row: user })}
-                            checked={isRowSelected(user)}
-                            onSelect={() => {
-                              const rowId = user.id || user["id"];
-                              if (isRowSelected(user)) {
-                                setUsers((prevUsers) =>
-                                  (prevUsers || []).filter((id) => String(id) !== String(rowId))
-                                );
-                              } else {
-                                setUsers((prevUsers) => [
-                                  ...(prevUsers || []),
-                                  rowId,
-                                ]);
-                              }
-                            }}
-                          />
-                          {user.cells.map((cell) => (
-                            <TableCell key={cell.id}>{cell.value}</TableCell>
-                          ))}
-                        </TableRow>
-                      ))}
+                    .map((role) => (
+                      <TableRow
+                        key={role["id"]}
+                        {...getRowProps({ row: role })}
+                      >
+                        <TableSelectRow
+                          {...getSelectionProps({ row: role })}
+                          checked={isRowSelected(role)}
+                          onSelect={() => {
+                            const rowId = role.id || role["id"];
+                            if (isRowSelected(role)) {
+                              setRoles((prevRoles) =>
+                                (prevRoles || []).filter((id) => String(id) !== String(rowId))
+                              );
+                            } else {
+                              setRoles((prevRoles) => [
+                                ...(prevRoles || []),
+                                rowId,
+                              ]);
+                            }
+                          }}
+                        />
+                        {role.cells.map((cell) => (
+                          <TableCell key={cell.id}>{cell.value}</TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -201,4 +195,4 @@ const ManageUsersPanel = () => {
   );
 };
 
-export default ManageUsersPanel;
+export default ManageRolesPanel;

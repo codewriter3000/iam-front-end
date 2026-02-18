@@ -1,16 +1,25 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Tab, TabList, Tabs, TabPanels } from "@carbon/react";
-import { useConfigureRoleModal } from "./ConfigureRoleModalContext";
-import { createRole, updateRole, deleteRole } from "@/../lib";
+import { useConfigurePermissionModal } from "./ConfigurePermissionModalContext";
+import {
+    updatePermission,
+    deletePermission,
+    getUsersWithPermission,
+    addManyUsersToPermission,
+    removeManyUsersFromPermission,
+    getRolesWithPermission,
+    addPermissionToRole,
+    removePermissionFromRole,
+} from "@/../lib";
 
-import { BasicInformationPanel, ManageUsersPanel } from "./index.js";
+import { BasicInformationPanel, ManageUsersPanel, ManageRolesPanel } from "./index.js";
 
-const ConfigureRoleModal = ({ role, open, setOpen }) => {
-    const context = useConfigureRoleModal();
+const ConfigurePermissionModal = ({ permission, open, setOpen }) => {
+    const context = useConfigurePermissionModal();
 
     if (!context) {
         throw new Error(
-            "useConfigureRoleModal must be used within a ConfigureRoleModalProvider"
+            "useConfigurePermissionModal must be used within a ConfigurePermissionModalProvider"
         );
     }
 
@@ -21,6 +30,12 @@ const ConfigureRoleModal = ({ role, open, setOpen }) => {
         setDescription,
         users,
         setUsers,
+        originalUsers,
+        setOriginalUsers,
+        roles,
+        setRoles,
+        originalRoles,
+        setOriginalRoles,
         deleteStage,
         setDeleteStage,
         isDeleteAccordionOpened,
@@ -28,25 +43,65 @@ const ConfigureRoleModal = ({ role, open, setOpen }) => {
     } = context;
 
     useEffect(() => {
-        console.log("Role in ConfigureRoleModal:", role);
-        setName(role?.["name"]);
-        setDescription(role?.["description"]);
-        setDeleteStage("Delete Role");
-        setUsers(role?.["users"] || []);
-    }, [role, setDeleteStage, setDescription, setName, setUsers]);
+        setName(permission?.["name"] || "");
+        setDescription(permission?.["description"] || "");
+        setDeleteStage("Delete Permission");
+
+        if (!open || !permission?.["id"]) {
+            setUsers([]);
+            setOriginalUsers([]);
+            setRoles([]);
+            setOriginalRoles([]);
+            return;
+        }
+
+        getUsersWithPermission(permission["id"])
+            .then((permissionUsers) => {
+                const userIds = (permissionUsers || []).map((user) => Number(user.id || user["id"]));
+                setUsers(userIds);
+                setOriginalUsers(userIds);
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+
+        getRolesWithPermission(permission["id"])
+            .then((permissionRoles) => {
+                const roleIds = (permissionRoles || []).map((role) => Number(role.id || role["id"]));
+                setRoles(roleIds);
+                setOriginalRoles(roleIds);
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }, [
+        open,
+        permission,
+        setDeleteStage,
+        setDescription,
+        setName,
+        setOriginalRoles,
+        setOriginalUsers,
+        setRoles,
+        setUsers,
+    ]);
 
     const tabs = useMemo(
         () => [
             {
-                label: "Role Information",
-                panel: <BasicInformationPanel role={role} />,
+                label: "Permission Information",
+                panel: <BasicInformationPanel permission={permission} />,
             },
             {
                 label: "Manage Users",
-                panel: <ManageUsersPanel role={role} />,
+                panel: <ManageUsersPanel />,
+            },
+            {
+                label: "Manage Roles",
+                panel: <ManageRolesPanel />,
             }
         ],
-        [role]
+        [permission]
     );
 
     useEffect(() => {
@@ -64,35 +119,19 @@ const ConfigureRoleModal = ({ role, open, setOpen }) => {
         setOpen(false);
         setName("");
         setDescription("");
-        setDeleteStage("Delete Role");
+        setUsers([]);
+        setOriginalUsers([]);
+        setRoles([]);
+        setOriginalRoles([]);
+        setDeleteStage("Delete Permission");
         setIsDeleteAccordionOpened(false);
     };
 
-    const handleSave = () => {
-        if (role) {
-            updateRole(role?.["id"], name, description)
-                .then(() => {
-                    handleClose();
-                })
-                .catch((err) => {
-                    console.error(err);
-                });
-        } else {
-            createRole(name, description)
-                .then(() => {
-                    handleClose();
-                })
-                .catch((err) => {
-                    console.error(err);
-                });
-        }
-    };
-
     const handleDelete = () => {
-        if (deleteStage === "Delete Role") {
+        if (deleteStage === "Delete Permission") {
             setDeleteStage("Are you sure?");
         } else {
-            deleteRole(role?.["id"])
+            deletePermission(permission?.["id"])
                 .then(() => {
                     handleClose();
                 })
@@ -107,23 +146,62 @@ const ConfigureRoleModal = ({ role, open, setOpen }) => {
             preventCloseOnClickOutside={true}
             open={open}
             onRequestClose={() => handleClose()}
-            modalHeading={`Configure ${role?.["name"]}`}
-            modalLabel="Role configuration"
+            modalHeading={`Configure ${permission?.["name"]}`}
+            modalLabel="Permission configuration"
             secondaryButtonText="Cancel"
             primaryButtonText="Save Changes"
-            onRequestSubmit={() => {
-                const updatedRolePayload = {
+            onRequestSubmit={async () => {
+                if (!permission?.["id"]) {
+                    handleClose();
+                    return;
+                }
+
+                const updatedPermissionPayload = {
                     name: name,
                     description: description,
-                    users: users.map((user) => ({ id: user.id })),
                 };
 
-                updateRole(role["id"], updatedRolePayload).then(() => {
-                    console.log("updatedRolePayload", updatedRolePayload);
-                    console.log("Role successfully updated");
-                });
+                try {
+                    await updatePermission(permission["id"], updatedPermissionPayload);
 
-                setOpen(false);
+                    const usersToAdd = (users || []).filter(
+                        (id) => !(originalUsers || []).map(String).includes(String(id))
+                    );
+                    const usersToRemove = (originalUsers || []).filter(
+                        (id) => !(users || []).map(String).includes(String(id))
+                    );
+
+                    if (usersToAdd.length > 0) {
+                        await addManyUsersToPermission(permission["id"], usersToAdd.map(Number));
+                    }
+
+                    if (usersToRemove.length > 0) {
+                        await removeManyUsersFromPermission(permission["id"], usersToRemove.map(Number));
+                    }
+
+                    const rolesToAdd = (roles || []).filter(
+                        (id) => !(originalRoles || []).map(String).includes(String(id))
+                    );
+                    const rolesToRemove = (originalRoles || []).filter(
+                        (id) => !(roles || []).map(String).includes(String(id))
+                    );
+
+                    if (rolesToAdd.length > 0) {
+                        await Promise.all(
+                            rolesToAdd.map((roleID) => addPermissionToRole(Number(roleID), Number(permission["id"])))
+                        );
+                    }
+
+                    if (rolesToRemove.length > 0) {
+                        await Promise.all(
+                            rolesToRemove.map((roleID) => removePermissionFromRole(Number(roleID), Number(permission["id"])))
+                        );
+                    }
+                } catch (err) {
+                    console.error(err);
+                } finally {
+                    handleClose();
+                }
             }}
         >
             <Tabs selectedIndex={selectedIndex} onChange={handleTabChange}>
@@ -144,4 +222,4 @@ const ConfigureRoleModal = ({ role, open, setOpen }) => {
     );
 }
 
-export default ConfigureRoleModal;
+export default ConfigurePermissionModal;

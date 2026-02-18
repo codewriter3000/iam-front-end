@@ -14,38 +14,38 @@ import {
   TableSelectRow,
   TableContainer,
 } from "@carbon/react";
-import { useConfigurePermissionModal } from "./ConfigurePermissionModalContext";
+import { useConfigureRoleModal } from "./ConfigureRoleModalContext";
 
-import { getUsers } from "@/../lib";
+import { getPermissions } from "@/../lib";
 
-const ManageUsersPanel = () => {
+const ManagePermissionsPanel = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
   const [searchString, setSearchString] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [realData, setRealData] = useState([]);
 
-  const context = useConfigurePermissionModal();
+  const context = useConfigureRoleModal();
+
+  const { permissions, setPermissions } = context;
 
   if (!context) {
     throw new Error(
-      "useConfigurePermissionModal must be used within a ConfigurePermissionModalProvider"
+      "useConfigureRoleModal must be used within a ConfigureRoleModalProvider"
     );
   }
 
-  const { users, setUsers } = context;
-
-  // Ensure isRowSelected always reflects the latest users state
+  // Ensure isRowSelected always reflects the latest permissions state
   const isRowSelected = useCallback(
-    (row) => (users || []).map(String).includes(String(row.id || row["id"])),
-    [users]
+    (row) => (permissions || []).map(String).includes(String(row.id || row["id"])),
+    [permissions]
   );
 
   useEffect(() => {
-    getUsers()
-      .then((users) => {
-        console.log(users);
-        setRealData(users);
+    getPermissions()
+      .then((permissions) => {
+        console.log(permissions);
+        setRealData(permissions);
       })
       .catch((err) => {
         console.error(err);
@@ -63,9 +63,8 @@ const ManageUsersPanel = () => {
   };
 
   const headers = [
-    { key: "last_name", header: "Last Name" },
-    { key: "first_name", header: "First Name" },
-    { key: "username", header: "Username" },
+    { key: "name", header: "Name" },
+    { key: "description", header: "Description" },
   ];
 
   useEffect(() => {
@@ -75,16 +74,12 @@ const ManageUsersPanel = () => {
       setSearchResults(
         realData.filter((result) => {
           return (
-            (result["username"] &&
-              result["username"]
+            (result["name"] &&
+              result["name"]
                 .toLowerCase()
                 .includes(searchString.toLowerCase())) ||
-            (result["first_name"] &&
-              result["first_name"]
-                .toLowerCase()
-                .includes(searchString.toLowerCase())) ||
-            (result["last_name"] &&
-              result["last_name"]
+            (result["description"] &&
+              result["description"]
                 .toLowerCase()
                 .includes(searchString.toLowerCase()))
           );
@@ -103,14 +98,15 @@ const ManageUsersPanel = () => {
           marginTop: "1rem",
         }}
       >
-        Directly adding or removing permissions from users is not recommended, as it can lead to a complex and hard-to-maintain permission structure. Instead, consider managing permissions through roles.
+        This is where you can view and remove the permissions that have been assigned to this
+        role.
       </p>
       <div>
         <Search
           size="lg"
-          placeholder="Find a user"
+          placeholder="Find a permission"
           labelText="Search"
-          id="user-search"
+          id="permission-search"
           onChange={(evt) => setSearchString(evt.target.value)}
         />
         <Pagination
@@ -138,8 +134,8 @@ const ManageUsersPanel = () => {
             getTableContainerProps,
           }) => (
             <TableContainer
-              title="Users"
-              description="List of users"
+              title="Permissions"
+              description="List of permissions"
               {...getTableContainerProps()}
             >
               <Table {...getTableProps()}>
@@ -158,35 +154,35 @@ const ManageUsersPanel = () => {
                 </TableHead>
                 <TableBody>
                   {rows
-                    .filter((user) => {
+                    .filter((permission) => {
                       return (
-                        page * pageSize > rows.indexOf(user) &&
-                        (page - 1) * pageSize <= rows.indexOf(user)
+                        page * pageSize > rows.indexOf(permission) &&
+                        (page - 1) * pageSize <= rows.indexOf(permission)
                       );
                     })
-                    .map((user) => (
+                    .map((permission) => (
                         <TableRow
-                          key={user["id"]}
-                          {...getRowProps({ row: user })}
+                          key={permission["id"]}
+                          {...getRowProps({ row: permission })}
                         >
                           <TableSelectRow
-                            {...getSelectionProps({ row: user })}
-                            checked={isRowSelected(user)}
+                            {...getSelectionProps({ row: permission })}
+                            checked={isRowSelected(permission)}
                             onSelect={() => {
-                              const rowId = user.id || user["id"];
-                              if (isRowSelected(user)) {
-                                setUsers((prevUsers) =>
-                                  (prevUsers || []).filter((id) => String(id) !== String(rowId))
+                              const rowId = permission.id || permission["id"];
+                              if (isRowSelected(permission)) {
+                                setPermissions((prevPermissions) =>
+                                  (prevPermissions || []).filter((id) => String(id) !== String(rowId))
                                 );
                               } else {
-                                setUsers((prevUsers) => [
-                                  ...(prevUsers || []),
+                                setPermissions((prevPermissions) => [
+                                  ...(prevPermissions || []),
                                   rowId,
                                 ]);
                               }
                             }}
                           />
-                          {user.cells.map((cell) => (
+                          {permission.cells.map((cell) => (
                             <TableCell key={cell.id}>{cell.value}</TableCell>
                           ))}
                         </TableRow>
@@ -201,4 +197,4 @@ const ManageUsersPanel = () => {
   );
 };
 
-export default ManageUsersPanel;
+export default ManagePermissionsPanel;

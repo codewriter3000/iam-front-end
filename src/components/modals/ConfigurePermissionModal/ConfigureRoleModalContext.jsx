@@ -1,17 +1,20 @@
 import React, { createContext, useContext, useState } from 'react';
 
-const ConfigureRoleModalContext = createContext();
+const ConfigurePermissionModalContext = createContext();
 
-export const ConfigureRoleModalProvider = ({ children }) => {
+export const ConfigurePermissionModalProvider = ({ children }) => {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [users, setUsers] = useState([]);
+    const [originalUsers, setOriginalUsers] = useState([]);
+    const [roles, setRoles] = useState([]);
+    const [originalRoles, setOriginalRoles] = useState([]);
 
-    const [deleteStage, setDeleteStage] = useState("Delete Role");
+    const [deleteStage, setDeleteStage] = useState("Delete Permission");
     const [isDeleteAccordionOpened, setIsDeleteAccordionOpened] = useState(false);
 
     return (
-        <ConfigureRoleModalContext.Provider
+        <ConfigurePermissionModalContext.Provider
             value={{
                 name,
                 setName,
@@ -19,6 +22,12 @@ export const ConfigureRoleModalProvider = ({ children }) => {
                 setDescription,
                 users,
                 setUsers,
+                originalUsers,
+                setOriginalUsers,
+                roles,
+                setRoles,
+                originalRoles,
+                setOriginalRoles,
                 deleteStage,
                 setDeleteStage,
                 isDeleteAccordionOpened,
@@ -26,12 +35,15 @@ export const ConfigureRoleModalProvider = ({ children }) => {
             }}
         >
             {children}
-        </ConfigureRoleModalContext.Provider>
+        </ConfigurePermissionModalContext.Provider>
     );
 };
 
-export const useConfigureRoleModal = () => {
-    return useContext(ConfigureRoleModalContext);
+export const useConfigurePermissionModal = () => {
+    return useContext(ConfigurePermissionModalContext);
 };
 
-export default ConfigureRoleModalContext;
+export const ConfigureRoleModalProvider = ConfigurePermissionModalProvider;
+export const useConfigureRoleModal = useConfigurePermissionModal;
+
+export default ConfigurePermissionModalContext;

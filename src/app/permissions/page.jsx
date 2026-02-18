@@ -17,13 +17,13 @@ import {
 } from "@carbon/react";
 import { useCallback, useEffect, useState } from "react";
 import { getPermissions } from "@/../lib";
-/*import { NewPermissionModal, ConfigurePermissionModal, ManageUsersForPermissionModal } from "@/components/modals";*/
+import { NewPermissionModal, ConfigurePermissionModal } from "@/components/modals";
+import { ConfigurePermissionModalProvider } from "@/components/modals/ConfigurePermissionModal/index.js";
 import { ErrorBoundary } from "@/components/misc";
 
 const PermissionsPage = () => {
   const [configureOpen, setConfigureOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
-  const [manageUsersOpen, setManageUsersOpen] = useState(false);
   const [permission, setPermission] = useState("");
 
   const [page, setPage] = useState(1);
@@ -57,15 +57,6 @@ const PermissionsPage = () => {
     [realData]
   );
 
-  const getPermissionFromID = useCallback(
-    (id) => {
-      const permission = realData.find((rl) => rl["id"] === id);
-      console.log(`getPermissionFromID: ${JSON.stringify(permission)}`)
-      return permission;
-    },
-    [realData]
-  );
-
   const changePaginationState = (pageInfo) => {
     if (page !== pageInfo.page) {
       setPage(pageInfo.page);
@@ -88,7 +79,7 @@ const PermissionsPage = () => {
             <Button onClick={() => setNewOpen(true)} kind="primary">
               New Permission
             </Button>
-	  {/*<NewPermissionModal open={newOpen} setOpen={setNewOpen} />*/}
+	          <NewPermissionModal open={newOpen} setOpen={setNewOpen} />
             <Table>
               <TableHead>
                 <TableRow>
@@ -121,16 +112,6 @@ const PermissionsPage = () => {
                           >
                             Configure
                           </Button>
-                          <Button
-                            id={"permission/manageusers/" + permission["id"]}
-                            kind="ghost"
-                            onClick={() => {
-                              setPermission(getPermissionFromID(permission["id"]));
-                              setManageUsersOpen(true);
-                            }}
-                          >
-                            Manage Users
-                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -146,16 +127,13 @@ const PermissionsPage = () => {
             />
           </Section>
         </Column>
-	  {/*<ConfigurePermissionModal
+	  <ConfigurePermissionModalProvider>
+	    <ConfigurePermissionModal
           open={configureOpen}
           setOpen={setConfigureOpen}
           permission={permission}
-        />*/}
-	  {/*<ManageUsersForPermissionModal
-          open={manageUsersOpen}
-          setOpen={setManageUsersOpen}
-          permission={permission}
-        />*/}
+        />
+	  </ConfigurePermissionModalProvider>
       </Grid>
     </ErrorBoundary>
   );

@@ -1,17 +1,19 @@
-import ConfigureRoleModal from "./ConfigureRoleModal";
-import ConfigureRoleModalContext from "./ConfigureRoleModalContext";
+import ConfigurePermissionModal from "./ConfigureRoleModal";
+import ConfigurePermissionModalContext from "./ConfigureRoleModalContext";
 import ManageUsersPanel from "./ManageUsersPanel";
+import ManageRolesPanel from "./ManageRolesPanel";
 import BasicInformationPanel from "./BasicInformation";
 import {
-  ConfigureRoleModalProvider,
-  useConfigureRoleModal,
+  ConfigurePermissionModalProvider,
+  useConfigurePermissionModal,
 } from "./ConfigureRoleModalContext";
 
 export {
-  ConfigureRoleModal,
-  ConfigureRoleModalContext,
+  ConfigurePermissionModal,
+  ConfigurePermissionModalContext,
   ManageUsersPanel,
+  ManageRolesPanel,
   BasicInformationPanel,
-  ConfigureRoleModalProvider,
-  useConfigureRoleModal,
+  ConfigurePermissionModalProvider,
+  useConfigurePermissionModal,
 };
