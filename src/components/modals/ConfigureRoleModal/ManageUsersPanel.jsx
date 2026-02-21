@@ -20,7 +20,7 @@ import { useConfigureRoleModal } from "./ConfigureRoleModalContext";
 
 import { getUsers } from "@/../lib";
 
-const ManageUsersPanel = () => {
+const ManageUsersPanel = ({ isReadOnly = false }) => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
   const [searchString, setSearchString] = useState("");
@@ -166,7 +166,7 @@ const ManageUsersPanel = () => {
               <Table {...getTableProps()}>
                 <TableHead>
                   <TableRow>
-                    <TableSelectAll {...getSelectionProps()} />
+                    <TableSelectAll {...getSelectionProps()} disabled={isReadOnly} />
                     {headers.map((header) => (
                       <TableHeader
                         key={header.key}
@@ -192,8 +192,13 @@ const ManageUsersPanel = () => {
                         >
                           <TableSelectRow
                             {...getSelectionProps({ row: user })}
+                            disabled={isReadOnly}
                             checked={isRowSelected(user)}
                             onSelect={() => {
+                              if (isReadOnly) {
+                                return;
+                              }
+
                               // Extract the row id here
                               const rowId = user.id || user["id"];
                               console.log("Row selected, id:", rowId);

@@ -24,7 +24,7 @@ export default function ForgotPasswordPage() {
         router.push(response.reset_url);
         return;
       }
-      setMessage(response?.message || "If the account exists, a password reset link has been sent");
+      setMessage(response?.message || "If the account exists, a password reset link has been sent to the administrator. Please contact your administrator for further assistance.");
     } catch (err) {
       setError(err.message || "Request failed");
     } finally {

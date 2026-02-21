@@ -12,7 +12,7 @@ export function Providers({ children }) {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
   const isPublicRoute = useMemo(() => {
-    return ["/login", "/forgot-password", "/reset-password"].includes(pathname);
+    return ["/login", "/forgot-password", "/reset-password", "/oauth/login", "/oauth/authorize", "/error"].includes(pathname);
   }, [pathname]);
 
   useEffect(() => {

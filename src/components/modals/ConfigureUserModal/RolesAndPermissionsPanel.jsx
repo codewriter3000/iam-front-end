@@ -1,7 +1,7 @@
 import { Stack, FilterableMultiSelect } from "@carbon/react";
 import { useConfigureUserModal, Permissions } from "./index";
 
-const RolesAndPermissionsPanel = ({ user }) => {
+const RolesAndPermissionsPanel = ({ user, isReadOnly = false }) => {
   const { allRoles, rolesBelongingToUser, setRolesBelongingToUser } =
     useConfigureUserModal();
 
@@ -31,7 +31,12 @@ const RolesAndPermissionsPanel = ({ user }) => {
               items={roleItems}
               itemToString={(item) => (item ? item.text : "")}
               selectedItems={selectedRoleItems}
+              disabled={isReadOnly}
               onChange={({ selectedItems }) => {
+                if (isReadOnly) {
+                  return;
+                }
+
                 setRolesBelongingToUser(selectedItems.map((item) => item.id));
               }}
               label="Roles"

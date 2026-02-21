@@ -1,27 +1,62 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Form, Stack, PasswordInput, InlineNotification } from "@carbon/react";
-import { resetPassword } from "@/../lib";
+import { getForcedResetContext, resetPassword } from "@/../lib";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = useMemo(() => searchParams.get("token") || "", [searchParams]);
+  const isForcedFlow = useMemo(() => searchParams.get("forced") === "1", [searchParams]);
+  const nextPath = useMemo(() => searchParams.get("next") || "", [searchParams]);
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isContextValidated, setIsContextValidated] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (token) {
+      setIsContextValidated(true);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    if (!isForcedFlow) {
+      router.replace("/login");
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    getForcedResetContext()
+      .then(() => {
+        if (!isMounted) return;
+        setIsContextValidated(true);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        router.replace("/login");
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isForcedFlow, router, token]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
     setError("");
     setMessage("");
 
-    if (!token) {
+    if (!token && !isForcedFlow) {
       setError("Missing reset token");
       return;
     }
@@ -36,8 +71,9 @@ export default function ResetPasswordPage() {
     try {
       const response = await resetPassword(token, password);
       setMessage(response?.message || "Password reset successfully");
+      const resolvedNext = nextPath.startsWith("/") ? nextPath : "/";
       setTimeout(() => {
-        router.replace("/login");
+        router.replace(resolvedNext || "/");
       }, 1200);
     } catch (err) {
       setError(err.message || "Reset failed");
@@ -45,6 +81,10 @@ export default function ResetPasswordPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (!isContextValidated) {
+    return null;
+  }
 
   return (
     <main className="mx-auto max-w-lg p-8">

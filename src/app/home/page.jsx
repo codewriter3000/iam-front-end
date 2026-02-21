@@ -6,23 +6,36 @@ import {
   Column,
 } from "@carbon/react";
 import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useCountUp } from "react-countup";
 import { getRoles, getUsers } from "@/../lib";
 
 export default function LandingPage() {
+    const router = useRouter()
     const [realData, setRealData] = useState([])
     const [roles, setRoles] = useState([])
 
     useEffect(() => {
-        getUsers().then((data) => {
-            setRealData(data)
-            userCountUp.update(data.length)
-        })
-        getRoles().then((data) => {
-            setRoles(data)
-            roleCountUp.update(data.length)
-        })
-    }, [])
+    getUsers()
+      .then((data) => {
+        const safeUsers = Array.isArray(data) ? data : []
+        setRealData(safeUsers)
+        userCountUp.update(safeUsers.length)
+      })
+      .catch(() => {
+        router.replace("/error")
+      })
+
+    getRoles()
+      .then((data) => {
+        const safeRoles = Array.isArray(data) ? data : []
+        setRoles(safeRoles)
+        roleCountUp.update(safeRoles.length)
+      })
+      .catch(() => {
+        router.replace("/error")
+      })
+  }, [router])
 
     const userCountUpRef = useRef(null)
     const userCountUp = useCountUp({

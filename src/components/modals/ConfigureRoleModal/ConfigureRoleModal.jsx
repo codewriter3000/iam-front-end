@@ -12,7 +12,7 @@ import {
 
 import { BasicInformationPanel, ManagePermissionsPanel, ManageUsersPanel } from "./index.js";
 
-const ConfigureRoleModal = ({ role, open, setOpen }) => {
+const ConfigureRoleModal = ({ role, open, setOpen, isReadOnly = false }) => {
     const context = useConfigureRoleModal();
 
     if (!context) {
@@ -75,18 +75,18 @@ const ConfigureRoleModal = ({ role, open, setOpen }) => {
         () => [
             {
                 label: "Role Information",
-                panel: <BasicInformationPanel role={role} />,
+                panel: <BasicInformationPanel role={role} isReadOnly={isReadOnly} />,
             },
             {
                 label: "Manage Users",
-                panel: <ManageUsersPanel role={role} />,
+                panel: <ManageUsersPanel role={role} isReadOnly={isReadOnly} />,
             },
             {
                 label: "Manage Permissions",
-                panel: <ManagePermissionsPanel role={role} />,
+                panel: <ManagePermissionsPanel role={role} isReadOnly={isReadOnly} />,
             },
         ],
-        [role]
+        [role, isReadOnly]
     );
 
     useEffect(() => {
@@ -153,7 +153,12 @@ const ConfigureRoleModal = ({ role, open, setOpen }) => {
             modalLabel="Role configuration"
             secondaryButtonText="Cancel"
             primaryButtonText="Save Changes"
+            primaryButtonDisabled={isReadOnly}
             onRequestSubmit={async () => {
+                if (isReadOnly) {
+                    return;
+                }
+
                 const updatedRolePayload = {
                     name: name,
                     description: description,

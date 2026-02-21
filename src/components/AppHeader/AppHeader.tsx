@@ -16,11 +16,13 @@ import {
 } from "@carbon/react";
 import { Switcher, Notification, UserAvatar } from "@carbon/icons-react";
 import { getSessionUser, logoutUser } from "@/../lib";
+import { hasAdministratorAccess } from "@/lib/access";
 
 const AppHeader = () => {
   const [isClient, setIsClient] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [username, setUsername] = useState("Unknown user");
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     setIsClient(true); // Ensure this component is rendered only on the client
@@ -30,9 +32,12 @@ const AppHeader = () => {
         if (user?.username) {
           setUsername(user.username);
         }
+
+        setIsAdmin(hasAdministratorAccess(user));
       })
       .catch(() => {
         setUsername("Unknown user");
+        setIsAdmin(false);
       });
   }, []);
 
@@ -62,6 +67,7 @@ const AppHeader = () => {
             <HeaderMenuItem href="/users">Users</HeaderMenuItem>
             <HeaderMenuItem href="/roles">Roles</HeaderMenuItem>
             <HeaderMenuItem href="/permissions">Permissions</HeaderMenuItem>
+            {isAdmin ? <HeaderMenuItem href="/oauth-apps">OAuth Apps</HeaderMenuItem> : null}
           </HeaderNavigation>
 
           {isClient && (
@@ -77,6 +83,7 @@ const AppHeader = () => {
                   <HeaderMenuItem href="/permissions">
                     Permissions
                   </HeaderMenuItem>
+                  {isAdmin ? <HeaderMenuItem href="/oauth-apps">OAuth Apps</HeaderMenuItem> : null}
                 </HeaderSideNavItems>
               </SideNavItems>
             </SideNav>

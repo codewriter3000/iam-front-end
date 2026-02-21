@@ -20,8 +20,10 @@ import { getPermissions } from "@/../lib";
 import { NewPermissionModal, ConfigurePermissionModal } from "@/components/modals";
 import { ConfigurePermissionModalProvider } from "@/components/modals/ConfigurePermissionModal/index.js";
 import { ErrorBoundary } from "@/components/misc";
+import useAdminAccess from "@/hooks/useAdminAccess";
 
 const PermissionsPage = () => {
+  const { isReadOnly } = useAdminAccess();
   const [configureOpen, setConfigureOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
   const [permission, setPermission] = useState("");
@@ -76,7 +78,7 @@ const PermissionsPage = () => {
         <Column lg={16} md={8} sm={4}>
           <Section level={1}>
             <Heading className='mb-4' style={{'fontSize': 20}}>Permissions</Heading>
-            <Button onClick={() => setNewOpen(true)} kind="primary">
+            <Button onClick={() => setNewOpen(true)} kind="primary" disabled={isReadOnly}>
               New Permission
             </Button>
 	          <NewPermissionModal open={newOpen} setOpen={setNewOpen} />
@@ -132,6 +134,7 @@ const PermissionsPage = () => {
           open={configureOpen}
           setOpen={setConfigureOpen}
           permission={permission}
+          isReadOnly={isReadOnly}
         />
 	  </ConfigurePermissionModalProvider>
       </Grid>

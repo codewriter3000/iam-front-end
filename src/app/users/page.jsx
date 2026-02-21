@@ -24,6 +24,7 @@ import { useEffect, useState, useMemo } from "react";
 import { getUsers } from "@/../lib";
 import { NewUserModal } from "@/components/modals";
 import { ErrorBoundary } from "@/components/misc";
+import useAdminAccess from "@/hooks/useAdminAccess";
 import {
   ConfigureUserModalProvider,
   ConfigureUserModal,
@@ -32,9 +33,11 @@ import {
 import "./_users-page.scss";
 
 const filterUsers = (users, searchString) => {
-  if (!searchString) return users;
+  const safeUsers = Array.isArray(users) ? users : [];
+
+  if (!searchString) return safeUsers;
   const lower = searchString.toLowerCase();
-  return users.filter(
+  return safeUsers.filter(
     (user) =>
       (user.id && user.id.toString().includes(lower)) ||
       (user.username && user.username.toLowerCase().includes(lower)) ||
@@ -44,6 +47,7 @@ const filterUsers = (users, searchString) => {
 };
 
 const UsersPage = () => {
+  const { isReadOnly } = useAdminAccess();
   const [configureOpen, setConfigureOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
   const [user, setUser] = useState("");
@@ -56,7 +60,7 @@ const UsersPage = () => {
 
   useEffect(() => {
     getUsers()
-      .then(setRealData)
+      .then((users) => setRealData(Array.isArray(users) ? users : []))
       .catch(() => setShouldThrowError(true));
   }, [newOpen, configureOpen]);
 
@@ -73,7 +77,7 @@ const UsersPage = () => {
   ];
 
   const sortedResults = useMemo(() => {
-    const sorted = [...searchResults];
+    const sorted = [...(Array.isArray(searchResults) ? searchResults : [])];
     if (sortBy.key && sortBy.key !== "actions") {
       sorted.sort((a, b) => {
         const aVal = a[sortBy.key] || "";
@@ -104,6 +108,7 @@ const UsersPage = () => {
           open={configureOpen}
           setOpen={setConfigureOpen}
           user={user}
+          isReadOnly={isReadOnly}
         />
       </ConfigureUserModalProvider>
       <Grid>
@@ -134,7 +139,11 @@ const UsersPage = () => {
                         setPage(1);
                       }}
                     />
-                    <Button kind="primary" onClick={() => setNewOpen(true)}>
+                    <Button
+                      kind="primary"
+                      onClick={() => setNewOpen(true)}
+                      disabled={isReadOnly}
+                    >
                       New User
                     </Button>
                   </TableToolbarContent>

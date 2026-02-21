@@ -2,7 +2,7 @@ import React from "react";
 import { Stack, TextInput } from "@carbon/react";
 import { useConfigurePermissionModal } from "./ConfigurePermissionModalContext";
 
-const BasicInformationPanel = ({ permission }) => {
+const BasicInformationPanel = ({ permission, isReadOnly = false }) => {
   const { name, setName, description, setDescription } =
     useConfigurePermissionModal();
 
@@ -32,6 +32,7 @@ const BasicInformationPanel = ({ permission }) => {
         labelText="Permission Name"
         value={name}
         defaultValue={permission?.["name"]}
+        readOnly={isReadOnly}
         onChange={handleNameChange}
       />
       <TextInput
@@ -39,6 +40,7 @@ const BasicInformationPanel = ({ permission }) => {
         labelText="Description"
         value={description}
         defaultValue={permission?.["description"]}
+        readOnly={isReadOnly}
         onChange={handleDescriptionChange}
         rows={4}
       />

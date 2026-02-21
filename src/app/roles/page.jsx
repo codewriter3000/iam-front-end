@@ -20,8 +20,10 @@ import { getRoles, getRoleByID } from "@/../lib";
 import { NewRoleModal } from "@/components/modals";
 import { ConfigureRoleModal, ConfigureRoleModalProvider } from "@/components/modals/ConfigureRoleModal/index.js";
 import { ErrorBoundary } from "@/components/misc";
+import useAdminAccess from "@/hooks/useAdminAccess";
 
 const RolesPage = () => {
+  const { isReadOnly } = useAdminAccess();
   const [configureOpen, setConfigureOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
   const [manageUsersOpen, setManageUsersOpen] = useState(false);
@@ -66,7 +68,7 @@ const RolesPage = () => {
         <Column lg={16} md={8} sm={4}>
           <Section level={1}>
             <Heading className='mb-4' style={{'fontSize': 20}}>Roles</Heading>
-            <Button onClick={() => setNewOpen(true)} kind="primary">
+            <Button onClick={() => setNewOpen(true)} kind="primary" disabled={isReadOnly}>
               New Role
             </Button>
             <NewRoleModal open={newOpen} setOpen={setNewOpen} />
@@ -123,6 +125,7 @@ const RolesPage = () => {
             open={configureOpen}
             setOpen={setConfigureOpen}
             role={role}
+            isReadOnly={isReadOnly}
           />
         </ConfigureRoleModalProvider>
       </Grid>

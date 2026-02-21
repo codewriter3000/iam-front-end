@@ -2,7 +2,7 @@ import React from "react";
 import { Stack, TextInput } from "@carbon/react";
 import { useConfigureRoleModal } from "./ConfigureRoleModalContext";
 
-const BasicInformationPanel = ({ role }) => {
+const BasicInformationPanel = ({ role, isReadOnly = false }) => {
   const { name, setName, description, setDescription } =
     useConfigureRoleModal();
 
@@ -32,6 +32,7 @@ const BasicInformationPanel = ({ role }) => {
         labelText="Role Name"
         value={name}
         defaultValue={role?.["name"]}
+        readOnly={isReadOnly}
         onChange={handleNameChange}
       />
       <TextInput
@@ -39,6 +40,7 @@ const BasicInformationPanel = ({ role }) => {
         labelText="Description"
         value={description}
         defaultValue={role?.["description"]}
+        readOnly={isReadOnly}
         onChange={handleDescriptionChange}
         rows={4}
       />

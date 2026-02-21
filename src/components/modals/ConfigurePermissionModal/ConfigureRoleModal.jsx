@@ -14,7 +14,7 @@ import {
 
 import { BasicInformationPanel, ManageUsersPanel, ManageRolesPanel } from "./index.js";
 
-const ConfigurePermissionModal = ({ permission, open, setOpen }) => {
+const ConfigurePermissionModal = ({ permission, open, setOpen, isReadOnly = false }) => {
     const context = useConfigurePermissionModal();
 
     if (!context) {
@@ -90,18 +90,18 @@ const ConfigurePermissionModal = ({ permission, open, setOpen }) => {
         () => [
             {
                 label: "Permission Information",
-                panel: <BasicInformationPanel permission={permission} />,
+                panel: <BasicInformationPanel permission={permission} isReadOnly={isReadOnly} />,
             },
             {
                 label: "Manage Users",
-                panel: <ManageUsersPanel />,
+                panel: <ManageUsersPanel isReadOnly={isReadOnly} />,
             },
             {
                 label: "Manage Roles",
-                panel: <ManageRolesPanel />,
+                panel: <ManageRolesPanel isReadOnly={isReadOnly} />,
             }
         ],
-        [permission]
+        [permission, isReadOnly]
     );
 
     useEffect(() => {
@@ -150,7 +150,12 @@ const ConfigurePermissionModal = ({ permission, open, setOpen }) => {
             modalLabel="Permission configuration"
             secondaryButtonText="Cancel"
             primaryButtonText="Save Changes"
+            primaryButtonDisabled={isReadOnly}
             onRequestSubmit={async () => {
+                if (isReadOnly) {
+                    return;
+                }
+
                 if (!permission?.["id"]) {
                     handleClose();
                     return;

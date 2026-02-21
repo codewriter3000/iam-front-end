@@ -1,24 +1,13 @@
 import {
-  Accordion,
-  AccordionItem,
-  Button,
   Modal,
-  Stack,
-  TextInput,
-  Toggle,
   Tabs,
   TabList,
   Tab,
   TabPanels,
-  Search,
-  CheckboxGroup,
-  Checkbox,
-  FilterableMultiSelect,
 } from "@carbon/react";
 import { useEffect, useState, useMemo } from "react";
 import {
   updateUser,
-  deleteUser,
   getRolesForUser,
   getUserPermissions,
   getRoles,
@@ -29,9 +18,13 @@ import {
   removePermissionFromUser,
 } from "@/../lib";
 
-import { useConfigureUserModal, UserInformationPanel, RolesAndPermissionsPanel } from "@/components/modals/ConfigureUserModal/index.js";
+import {
+  useConfigureUserModal,
+  UserInformationPanel,
+  RolesAndPermissionsPanel,
+} from "@/components/modals/ConfigureUserModal/index.js";
 
-const ConfigureUserModal = ({ user, open, setOpen }) => {
+const ConfigureUserModal = ({ user, open, setOpen, isReadOnly = false }) => {
   const context = useConfigureUserModal();
 
   if (!context) {
@@ -66,15 +59,24 @@ const ConfigureUserModal = ({ user, open, setOpen }) => {
   } = context;
 
   useEffect(() => {
+    if (!open) {
+      return;
+    }
+
     setDeleteStage("Delete Account");
     setFirstName(user?.["first_name"]);
     setLastName(user?.["last_name"]);
     setEmail(user?.["email"]);
     setUsername(user?.["username"]);
 
-    getRoles().then((roles) => {
-      setAllRoles(roles);
-    });
+    getRoles()
+      .then((roles) => {
+        setAllRoles(Array.isArray(roles) ? roles : []);
+      })
+      .catch((err) => {
+        console.error(err);
+        setAllRoles([]);
+      });
 
     if (!user) {
       return;
@@ -120,14 +122,20 @@ const ConfigureUserModal = ({ user, open, setOpen }) => {
     () => [
       {
         label: "User Information",
-        panel: <UserInformationPanel user={user} setOpen={setOpen} />,
+        panel: (
+          <UserInformationPanel
+            user={user}
+            setOpen={setOpen}
+            isReadOnly={isReadOnly}
+          />
+        ),
       },
       {
         label: "Roles and Permissions",
-        panel: <RolesAndPermissionsPanel user={user} />,
+        panel: <RolesAndPermissionsPanel user={user} isReadOnly={isReadOnly} />,
       },
     ],
-    [user, setOpen]
+    [user, setOpen, isReadOnly]
   );
 
   useEffect(() => {
@@ -181,7 +189,12 @@ const ConfigureUserModal = ({ user, open, setOpen }) => {
         modalLabel="User configuration"
         secondaryButtonText="Cancel"
         primaryButtonText="Save Changes"
+        primaryButtonDisabled={isReadOnly}
         onRequestSubmit={async () => {
+          if (isReadOnly) {
+            return;
+          }
+
           const updatedUserPayload = {
             username: username,
             first_name: firstName,

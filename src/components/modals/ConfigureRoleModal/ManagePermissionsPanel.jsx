@@ -18,7 +18,7 @@ import { useConfigureRoleModal } from "./ConfigureRoleModalContext";
 
 import { getPermissions } from "@/../lib";
 
-const ManagePermissionsPanel = () => {
+const ManagePermissionsPanel = ({ isReadOnly = false }) => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
   const [searchString, setSearchString] = useState("");
@@ -141,7 +141,7 @@ const ManagePermissionsPanel = () => {
               <Table {...getTableProps()}>
                 <TableHead>
                   <TableRow>
-                    <TableSelectAll {...getSelectionProps()} />
+                    <TableSelectAll {...getSelectionProps()} disabled={isReadOnly} />
                     {headers.map((header) => (
                       <TableHeader
                         key={header.key}
@@ -167,8 +167,13 @@ const ManagePermissionsPanel = () => {
                         >
                           <TableSelectRow
                             {...getSelectionProps({ row: permission })}
+                            disabled={isReadOnly}
                             checked={isRowSelected(permission)}
                             onSelect={() => {
+                              if (isReadOnly) {
+                                return;
+                              }
+
                               const rowId = permission.id || permission["id"];
                               if (isRowSelected(permission)) {
                                 setPermissions((prevPermissions) =>

@@ -143,7 +143,8 @@ const NewUserModal = ({ open, setOpen }) => {
         <PasswordInput
           data-modal-primary-focus
           id="password"
-          labelText="Password"
+          labelText="Initial Password"
+          helperText="This password will only be used once. The user will be prompted to change their password on their first login."
           value={password}
           invalid={passwordInvalid}
           invalidText={passwordInvalidText}

@@ -18,7 +18,12 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await loginUser(loginId, password);
+      const response = await loginUser(loginId, password);
+      if (response?.message === "Password reset required") {
+        router.replace(`/reset-password?forced=1&next=${encodeURIComponent("/")}`);
+        return;
+      }
+
       router.replace("/");
     } catch (err) {
       setError(err.message || "Login failed");
