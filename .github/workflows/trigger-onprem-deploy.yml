@@ -1,6 +1,9 @@
 name: Trigger OnPrem Frontend Deploy
 
 on:
+  push:
+    branches:
+      - production
   workflow_dispatch:
     inputs:
       build_sha:
@@ -33,10 +36,10 @@ jobs:
       - name: Dispatch deploy-frontend.yml in codewriter3000/onprem-deployment
         env:
           GH_TOKEN: ${{ secrets.ONPREM_DEPLOY_REPO_TOKEN }}
-          BUILD_SHA: ${{ inputs.build_sha }}
-          BUILD_ARTIFACT: ${{ inputs.build_artifact }}
-          DEPLOY_ENV: ${{ inputs.deploy_env }}
-          TARGET_REF: ${{ inputs.target_ref }}
+          BUILD_SHA: ${{ github.event.inputs.build_sha || github.sha }}
+          BUILD_ARTIFACT: ${{ github.event.inputs.build_artifact || 'frontend-build' }}
+          DEPLOY_ENV: ${{ github.event.inputs.deploy_env || 'production' }}
+          TARGET_REF: ${{ github.event.inputs.target_ref || 'production' }}
           PUBLIC_REPO: ${{ github.repository }}
           TRIGGERED_BY: ${{ github.actor }}
         run: |
