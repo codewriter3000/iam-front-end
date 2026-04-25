@@ -45,19 +45,7 @@ jobs:
             exit 1
           fi
 
-          payload=$(cat <<JSON
-          {
-            "ref": "${TARGET_REF}",
-            "inputs": {
-              "build_sha": "${BUILD_SHA}",
-              "public_repo": "${PUBLIC_REPO}",
-              "triggered_by": "${TRIGGERED_BY}",
-              "build_artifact": "${BUILD_ARTIFACT}",
-              "deploy_env": "${DEPLOY_ENV}"
-            }
-          }
-JSON
-          )
+          payload="{\"ref\":\"${TARGET_REF}\",\"inputs\":{\"build_sha\":\"${BUILD_SHA}\",\"public_repo\":\"${PUBLIC_REPO}\",\"triggered_by\":\"${TRIGGERED_BY}\",\"build_artifact\":\"${BUILD_ARTIFACT}\",\"deploy_env\":\"${DEPLOY_ENV}\"}}"
 
           curl --fail-with-body -L \
             -X POST \
