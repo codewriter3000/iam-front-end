@@ -50,13 +50,7 @@ jobs:
         run: npm run build
 
       - name: Package deployment artifact
-        run: |
-          mkdir -p frontend-build
-          cp -R .next frontend-build/.next
-          cp -R public frontend-build/public
-          cp package.json frontend-build/package.json
-          cp package-lock.json frontend-build/package-lock.json
-          cp next.config.mjs frontend-build/next.config.mjs
+        run: cp -R out frontend-build
 
       - name: Upload frontend artifact
         uses: actions/upload-artifact@v4
