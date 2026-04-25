@@ -7,8 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       build_sha:
-        description: Commit SHA to deploy
-        required: true
+        description: Optional override (normally uses current commit SHA)
+        required: false
+        default: ""
         type: string
       build_artifact:
         description: Artifact name created by build workflow
@@ -33,10 +34,41 @@ jobs:
   dispatch-remote-deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Package deployment artifact
+        run: |
+          mkdir -p frontend-build
+          cp -R .next frontend-build/.next
+          cp -R public frontend-build/public
+          cp package.json frontend-build/package.json
+          cp package-lock.json frontend-build/package-lock.json
+          cp next.config.mjs frontend-build/next.config.mjs
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.inputs.build_artifact || 'frontend-build' }}
+          path: frontend-build
+          if-no-files-found: error
+
       - name: Dispatch deploy-frontend.yml in codewriter3000/onprem-deployment
         env:
           GH_TOKEN: ${{ secrets.ONPREM_DEPLOY_REPO_TOKEN }}
-          BUILD_SHA: ${{ github.event.inputs.build_sha || github.sha }}
+          BUILD_SHA: ${{ github.sha }}
           BUILD_ARTIFACT: ${{ github.event.inputs.build_artifact || 'frontend-build' }}
           DEPLOY_ENV: ${{ github.event.inputs.deploy_env || 'production' }}
           TARGET_REF: ${{ github.event.inputs.target_ref || '' }}
