@@ -49,4 +49,3 @@ const BasicInformationPanel = ({ permission, isReadOnly = false }) => {
 };
 
 export default BasicInformationPanel;
-
