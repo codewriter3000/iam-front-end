@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Button,
@@ -15,7 +15,7 @@ import { Information } from "@carbon/icons-react";
 import { loginUser } from "@/../lib";
 import { buildOAuthQueryString, getConsentTooltip } from "@/../lib/oauth";
 
-export default function OAuthLoginPage() {
+function OAuthLoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loginId, setLoginId] = useState("");
@@ -106,5 +106,13 @@ export default function OAuthLoginPage() {
         </Stack>
       </Form>
     </main>
+  );
+}
+
+export default function OAuthLoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <OAuthLoginPageContent />
+    </Suspense>
   );
 }

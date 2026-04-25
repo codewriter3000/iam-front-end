@@ -20,7 +20,6 @@ export default function LandingPage() {
       .then((data) => {
         const safeUsers = Array.isArray(data) ? data : []
         setRealData(safeUsers)
-        userCountUp.update(safeUsers.length)
       })
       .catch(() => {
         router.replace("/error")
@@ -30,7 +29,6 @@ export default function LandingPage() {
       .then((data) => {
         const safeRoles = Array.isArray(data) ? data : []
         setRoles(safeRoles)
-        roleCountUp.update(safeRoles.length)
       })
       .catch(() => {
         router.replace("/error")
