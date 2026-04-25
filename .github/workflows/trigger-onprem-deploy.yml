@@ -22,8 +22,8 @@ on:
         type: string
       target_ref:
         description: Branch/tag in codewriter3000/onprem-deployment containing deploy-frontend.yml
-        required: true
-        default: production
+        required: false
+        default: ""
         type: string
 
 permissions:
@@ -39,7 +39,7 @@ jobs:
           BUILD_SHA: ${{ github.event.inputs.build_sha || github.sha }}
           BUILD_ARTIFACT: ${{ github.event.inputs.build_artifact || 'frontend-build' }}
           DEPLOY_ENV: ${{ github.event.inputs.deploy_env || 'production' }}
-          TARGET_REF: ${{ github.event.inputs.target_ref || 'production' }}
+          TARGET_REF: ${{ github.event.inputs.target_ref || '' }}
           PUBLIC_REPO: ${{ github.repository }}
           TRIGGERED_BY: ${{ github.actor }}
         run: |
@@ -48,14 +48,32 @@ jobs:
             exit 1
           fi
 
-          payload="{\"ref\":\"${TARGET_REF}\",\"inputs\":{\"build_sha\":\"${BUILD_SHA}\",\"public_repo\":\"${PUBLIC_REPO}\",\"triggered_by\":\"${TRIGGERED_BY}\",\"build_artifact\":\"${BUILD_ARTIFACT}\",\"deploy_env\":\"${DEPLOY_ENV}\"}}"
+          TARGET_REPO="codewriter3000/onprem-deployment"
+          TARGET_REF_RESOLVED="$TARGET_REF"
+
+          if [ -z "$TARGET_REF_RESOLVED" ]; then
+            TARGET_REF_RESOLVED=$(curl --fail-with-body -sS \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${TARGET_REPO}" | jq -r '.default_branch')
+          fi
+
+          if [ -z "$TARGET_REF_RESOLVED" ] || [ "$TARGET_REF_RESOLVED" = "null" ]; then
+            echo "Failed to resolve target ref for ${TARGET_REPO}"
+            exit 1
+          fi
+
+          echo "Dispatching deploy workflow on ref: ${TARGET_REF_RESOLVED}"
+
+          payload="{\"ref\":\"${TARGET_REF_RESOLVED}\",\"inputs\":{\"build_sha\":\"${BUILD_SHA}\",\"public_repo\":\"${PUBLIC_REPO}\",\"triggered_by\":\"${TRIGGERED_BY}\",\"build_artifact\":\"${BUILD_ARTIFACT}\",\"deploy_env\":\"${DEPLOY_ENV}\"}}"
 
           curl --fail-with-body -L \
             -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/codewriter3000/onprem-deployment/actions/workflows/deploy-frontend.yml/dispatches \
+            "https://api.github.com/repos/${TARGET_REPO}/actions/workflows/deploy-frontend.yml/dispatches" \
             -d "$payload"
 
           echo "Remote deploy workflow dispatched."
