@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Static Export Deployment
 
-## Getting Started
+This project is configured to build a static export into `out/`.
 
-First, run the development server:
+## Local Preview
+
+Do not open files in `out/` directly with `file://...`.
+
+Serve the exported folder over HTTP instead:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npx serve out -l 4173
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## IIS Deployment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The CI/CD pipeline should publish the contents of `out/` to IIS.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+If the site is hosted at the domain root, keep this empty:
 
-## Learn More
+```env
+NEXT_PUBLIC_BASE_PATH=
+```
 
-To learn more about Next.js, take a look at the following resources:
+If the site is hosted under an IIS application or virtual directory such as `/iam-carbon-react-ui`, set the same value before the build:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```env
+NEXT_PUBLIC_BASE_PATH=/iam-carbon-react-ui
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Then run the build in CI/CD so the exported HTML, scripts, and styles are generated with the correct asset paths.
 
-## Deploy on Vercel
+The included `public/web.config` is copied into `out/web.config` during the export and provides:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- default document support for `index.html`
+- SPA fallback rewriting to `index.html`
+- static MIME mappings for modern asset types
