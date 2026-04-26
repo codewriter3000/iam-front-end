@@ -11,9 +11,17 @@ export function Providers({ children }) {
   const router = useRouter();
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
-  const isPublicRoute = useMemo(() => {
-    return ["/login", "/forgot-password", "/reset-password", "/oauth/login", "/oauth/authorize", "/error"].includes(pathname);
+  const normalizedPathname = useMemo(() => {
+    if (!pathname) return "/";
+    if (pathname.length > 1 && pathname.endsWith("/")) {
+      return pathname.slice(0, -1);
+    }
+    return pathname;
   }, [pathname]);
+
+  const isPublicRoute = useMemo(() => {
+    return ["/login", "/forgot-password", "/reset-password", "/oauth/login", "/oauth/authorize", "/error"].includes(normalizedPathname);
+  }, [normalizedPathname]);
 
   useEffect(() => {
     let isMounted = true;
@@ -48,7 +56,22 @@ export function Providers({ children }) {
   }, [isPublicRoute, pathname, router]);
 
   if (!isPublicRoute && !isAuthChecked) {
-    return null;
+    return (
+      <div
+        aria-busy="true"
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#c6c6c6",
+          background: "#161616",
+          fontFamily: "system-ui, sans-serif",
+        }}
+      >
+        Loading...
+      </div>
+    );
   }
 
   return (

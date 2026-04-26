@@ -22,7 +22,8 @@ export default function LandingPage() {
         setRealData(safeUsers)
       })
       .catch(() => {
-        router.replace("/error")
+        // Auth gate in Providers handles unauthenticated redirects.
+        setRealData([])
       })
 
     getRoles()
@@ -31,7 +32,7 @@ export default function LandingPage() {
         setRoles(safeRoles)
       })
       .catch(() => {
-        router.replace("/error")
+        setRoles([])
       })
   }, [router])
 
